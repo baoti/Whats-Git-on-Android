@@ -15,7 +15,13 @@ buildscript {
 allprojects {
     repositories {
         jcenter()
+
+        // For butterknife 7.0.0
+        maven {
+            url 'https://oss.sonatype.org/content/repositories/snapshots/'
+        }
     }
+
     ext {
         androidBuildToolsVersion = "21.1.2"
         androidCompileSdkVersion = 21
