@@ -1,5 +1,6 @@
 package com.github.baoti.whatsgit;
 
+import android.accounts.AccountManager;
 import android.app.Application;
 
 import com.github.baoti.coding.CodingModule;
@@ -33,6 +34,12 @@ public class AppMainModule {
     @Provides
     Application provideApplication() {
         return appMain;
+    }
+
+    @Singleton
+    @Provides
+    AccountManager provideAccountManager() {
+        return AccountManager.get(appMain);
     }
 
     @Singleton

@@ -1,6 +1,7 @@
 package com.github.baoti.whatsgit;
 
 import android.app.Application;
+import android.provider.Settings;
 
 import dagger.ObjectGraph;
 import timber.log.Timber;
@@ -23,7 +24,6 @@ public class AppMain extends Application {
         app = this;
 
         super.onCreate();
-
 
         graph = ObjectGraph.create(new AppMainModule(this));
 
@@ -50,4 +50,7 @@ public class AppMain extends Application {
         return app.getScopedGraph();
     }
 
+    public String getAndroidUserId() {
+        return Settings.System.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+    }
 }
