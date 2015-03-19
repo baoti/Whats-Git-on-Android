@@ -1,4 +1,4 @@
-package com.github.baoti.osc.git.accounts;
+package com.github.baoti.coding.accounts;
 
 import android.accounts.AbstractAccountAuthenticator;
 import android.accounts.Account;
@@ -10,14 +10,16 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 
+import com.github.baoti.coding.CodingConstants;
+import com.github.baoti.coding.CodingSessionInterceptor;
+import com.github.baoti.coding.R;
+import com.github.baoti.coding.api.CodingApi;
 import com.github.baoti.git.accounts.LoginActivity;
-import com.github.baoti.osc.git.OscGitConstants;
-import com.github.baoti.osc.git.R;
-import com.github.baoti.osc.git.api.OscGitApi;
-import com.github.baoti.osc.git.api.OscGitSession;
 
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
+import retrofit.client.Response;
+import rx.Observable;
 import timber.log.Timber;
 
 /**
@@ -25,16 +27,16 @@ import timber.log.Timber;
  */
 class AccountAuthenticator extends AbstractAccountAuthenticator {
     private final Context context;
-    private final OscGitApi api;
+    private final CodingApi api;
     private final String accountType;
 
     public AccountAuthenticator(Context context) {
         super(context);
         this.context = context;
-        accountType = context.getString(OscGitConstants.ACCOUNT_TYPE_RES);
+        accountType = context.getString(CodingConstants.ACCOUNT_TYPE_RES);
         this.api = new RestAdapter.Builder()
-                .setEndpoint(OscGitApi.API_URL)
-                .build().create(OscGitApi.class);
+                .setEndpoint(CodingApi.API_URL)
+                .build().create(CodingApi.class);
     }
 
     @Override
@@ -72,8 +74,8 @@ class AccountAuthenticator extends AbstractAccountAuthenticator {
 
         String authToken;
         try {
-            OscGitSession session = api.login(account.name, password).toBlocking().first();
-            authToken = session.private_token;
+            authToken = CodingSessionInterceptor.fetchSessionId(
+                    api.login(account.name, password, null).toBlocking().first());
         } catch (RetrofitError error) {
             throw new NetworkErrorException(error);
         } catch (Throwable throwable) {

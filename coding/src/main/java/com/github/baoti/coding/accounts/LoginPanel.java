@@ -1,4 +1,4 @@
-package com.github.baoti.osc.git.accounts;
+package com.github.baoti.coding.accounts;
 
 import android.accounts.Account;
 import android.accounts.AccountAuthenticatorActivity;
@@ -14,14 +14,16 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 
+import com.github.baoti.coding.CodingConstants;
+import com.github.baoti.coding.CodingSessionInterceptor;
+import com.github.baoti.coding.R;
+import com.github.baoti.coding.api.CodingApi;
 import com.github.baoti.git.accounts.AccountUtils;
-import com.github.baoti.osc.git.OscGitConstants;
-import com.github.baoti.osc.git.R;
-import com.github.baoti.osc.git.api.OscGitApi;
-import com.github.baoti.osc.git.api.OscGitSession;
 
 import retrofit.RestAdapter;
+import retrofit.client.Response;
 import rx.Observer;
+import rx.Subscription;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import timber.log.Timber;
@@ -47,9 +49,11 @@ public class LoginPanel extends LinearLayout {
 //    @FindView(R.id.password)
     EditText password;
 
+    EditText captcha;
+
     Button login;
 
-    private OscGitApi api;
+    private CodingApi api;
     private String accountType;
     private AccountUtils accountUtils;
 
@@ -69,10 +73,10 @@ public class LoginPanel extends LinearLayout {
             authenticatorActivity = (AccountAuthenticatorActivity) context;
         }
         res = getResources();
-        accountType = res.getString(OscGitConstants.ACCOUNT_TYPE_RES);
+        accountType = res.getString(CodingConstants.ACCOUNT_TYPE_RES);
         api = new RestAdapter.Builder()
-                .setEndpoint(OscGitApi.API_URL)
-                .build().create(OscGitApi.class);
+                .setEndpoint(CodingApi.API_URL)
+                .build().create(CodingApi.class);
         accountUtils = new AccountUtils(AccountManager.get(context));
     }
 
@@ -81,6 +85,7 @@ public class LoginPanel extends LinearLayout {
         super.onFinishInflate();
         email = (EditText) findViewById(R.id.email);
         password = (EditText) findViewById(R.id.password);
+        captcha = (EditText) findViewById(R.id.captcha);
         login = (Button) findViewById(R.id.login);
         login.setOnClickListener(new OnClickListener() {
             @Override
@@ -92,22 +97,23 @@ public class LoginPanel extends LinearLayout {
 
     private void onLoginClick() {
         if (TextUtils.isEmpty(email.getText())) {
-            email.setError(res.getString(R.string.osc_git_invalid_email));
+            email.setError(res.getString(R.string.coding_invalid_email));
             return;
         }
         if (TextUtils.isEmpty(password.getText())) {
-            password.setError(res.getString(R.string.osc_git_invalid_password));
+            password.setError(res.getString(R.string.coding_invalid_password));
             return;
         }
 
         final String emailText = email.getText().toString();
         final String passwordText = password.getText().toString();
+        String captchaText = TextUtils.isEmpty(captcha.getText()) ? null : captcha.getText().toString();
 
-        bindView(this, api.login(emailText, passwordText)
-                .map(new Func1<OscGitSession, String>() {
+        bindView(this, api.login(emailText, passwordText, captchaText)
+                .map(new Func1<Response, String>() {
                     @Override
-                    public String call(OscGitSession oscGitSession) {
-                        return oscGitSession.private_token;
+                    public String call(Response response) {
+                        return CodingSessionInterceptor.fetchSessionId(response);
                     }
                 })
                 .doOnNext(new Action1<String>() {
@@ -116,7 +122,7 @@ public class LoginPanel extends LinearLayout {
                         Account account = new Account(emailText, accountType);
                         accountUtils.savePassword(account, passwordText);
                         accountUtils.saveAuthToken(account,
-                                OscGitConstants.AUTH_TOKEN_TYPE, s);
+                                CodingConstants.AUTH_TOKEN_TYPE, s);
                     }
                 }))
                 .subscribe(new Observer<String>() {
@@ -137,11 +143,11 @@ public class LoginPanel extends LinearLayout {
                 });
     }
 
-    void onLoginSuccess(String email, String password, String token) {
+    void onLoginSuccess(String email, String password, String s) {
         final Intent intent = new Intent();
         intent.putExtra(KEY_ACCOUNT_NAME, email);
         intent.putExtra(KEY_ACCOUNT_TYPE, accountType);
-        intent.putExtra(KEY_AUTHTOKEN, token);
+        intent.putExtra(KEY_AUTHTOKEN, s);
 
         if (authenticatorActivity != null) {
             authenticatorActivity.setAccountAuthenticatorResult(intent.getExtras());

@@ -1,6 +1,8 @@
 <resources>
     <string name="osc_git.title">Git@OSC</string>
     <string name="osc_git.account_type" translatable="false">com.github.baoti.osc.git</string>
+    <string name="osc_git.email_hint">Email</string>
+    <string name="osc_git.password_hint">Password</string>
     <string name="osc_git.invalid_email">Email 格式不正确</string>
     <string name="osc_git.invalid_password">请输入密码</string>
 </resources>

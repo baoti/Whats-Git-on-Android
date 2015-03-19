@@ -14,10 +14,18 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.github.baoti.git.GitSource;
+import com.github.baoti.git.Repository;
 import com.github.baoti.whatsgit.AppMain;
 import com.github.baoti.whatsgit.R;
 
+import java.util.List;
+
 import javax.inject.Inject;
+
+import rx.Observer;
+import rx.functions.Action1;
+import rx.subscriptions.CompositeSubscription;
+import timber.log.Timber;
 
 
 public class MainActivity extends ActionBarActivity
@@ -35,6 +43,8 @@ public class MainActivity extends ActionBarActivity
 
     @Inject
     GitSource[] gitSources;
+
+    final CompositeSubscription subscriptions = new CompositeSubscription();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +76,23 @@ public class MainActivity extends ActionBarActivity
         int position = number - 1;
         if (position >= 0 && position < gitSources.length) {
             mTitle = gitSources[position].toString();
+            subscriptions.add(gitSources[position].getRepositories(this, 1, 30)
+                    .subscribe(new Observer<List<? extends Repository>>() {
+                        @Override
+                        public void onCompleted() {
+                            Timber.v("repo completed");
+                        }
+
+                        @Override
+                        public void onError(Throwable e) {
+                            Timber.v(e, "repo");
+                        }
+
+                        @Override
+                        public void onNext(List<? extends Repository> repositories) {
+                            Timber.v("Got some repositories: %s", repositories.size());
+                        }
+                    }));
         }
     }
 

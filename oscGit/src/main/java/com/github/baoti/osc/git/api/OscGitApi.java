@@ -2,6 +2,9 @@ package com.github.baoti.osc.git.api;
 
 import com.github.baoti.osc.git.OscGitProject;
 
+import java.util.List;
+
+import retrofit.http.Field;
 import retrofit.http.FormUrlEncoded;
 import retrofit.http.GET;
 import retrofit.http.POST;
@@ -17,8 +20,8 @@ public interface OscGitApi {
     @FormUrlEncoded
     @POST("/session")
     Observable<OscGitSession> login(
-            @Query("email") String email,
-            @Query("password") String password
+            @Field("email") String email,
+            @Field("password") String password
     );
 
     /**
@@ -28,7 +31,7 @@ public interface OscGitApi {
      * @return
      */
     @GET("/projects/popular")
-    Observable<OscGitProject> listPopularProjects(
+    Observable<List<OscGitProject>> listPopularProjects(
             @Query("page") int page,
             @Query("pageSize") int pageSize
     );

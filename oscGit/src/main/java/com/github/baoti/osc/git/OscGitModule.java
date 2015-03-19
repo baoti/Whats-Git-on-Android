@@ -3,7 +3,6 @@ package com.github.baoti.osc.git;
 import android.app.Application;
 
 import com.github.baoti.git.GitSource;
-import com.github.baoti.git.accounts.AccountUtils;
 
 import javax.inject.Singleton;
 
@@ -20,9 +19,8 @@ public class OscGitModule {
 
     @Singleton
     @Provides
-    OscGitSource oscGitSource(Application app,
-                              AccountUtils accountUtils) {
-        return new OscGitSource(accountUtils, app.getString(OscGitConstants.ACCOUNT_TYPE_RES));
+    @AccountType String accountType(Application app) {
+        return app.getString(OscGitConstants.ACCOUNT_TYPE_RES);
     }
 
     @Provides(type = Provides.Type.SET)

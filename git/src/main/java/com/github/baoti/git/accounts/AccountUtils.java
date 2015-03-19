@@ -2,15 +2,17 @@ package com.github.baoti.git.accounts;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
-import android.content.Intent;
+import android.accounts.AccountManagerCallback;
+import android.accounts.AccountManagerFuture;
+import android.accounts.OperationCanceledException;
+import android.app.Activity;
 import android.os.Bundle;
-
-import org.apache.http.MethodNotSupportedException;
 
 import javax.inject.Inject;
 
 import rx.Observable;
 import rx.Subscriber;
+import timber.log.Timber;
 
 /**
  * Created by liuyedong on 15-3-19.
@@ -23,59 +25,82 @@ public class AccountUtils {
         this.accountManager = accountManager;
     }
 
-    public Observable<Account> getAccount(final String accountType, final String authTokenType) {
-        Account[] accounts = accountManager.getAccountsByType(accountType);
-        if (accounts.length > 0) {
-            return Observable.just(accounts[0]);
-        }
-        return Observable.create(new Observable.OnSubscribe<Account>() {
+    public Observable<Bundle> getAuthToken(final Activity activity, final String accountType, final String authTokenType) {
+        return Observable.create(new Observable.OnSubscribe<Bundle>() {
             @Override
-            public void call(Subscriber<? super Account> subscriber) {
-                Account[] accounts = accountManager.getAccountsByType(accountType);
-                while (accounts.length == 0) {
-                    if (subscriber.isUnsubscribed()) {
-                        return;
-                    }
-                    try {
-                        Bundle result = accountManager.addAccount(
-                                accountType, authTokenType, null, null, null, null, null).getResult();
-                        Intent intent = result.getParcelable(AccountManager.KEY_INTENT);
-                    } catch (Exception e) {
-                        subscriber.onError(e);
-                        return;
-                    }
+            public void call(final Subscriber<? super Bundle> subscriber) {
+                if (subscriber.isUnsubscribed()) {
+                    return;
                 }
+                if (activity.isFinishing()) {
+                    subscriber.onError(new OperationCanceledException("Activity had finished!"));
+                    return;
+                }
+                accountManager.getAuthTokenByFeatures(accountType, authTokenType, null,
+                        activity, null, null,
+                        new AccountManagerCallback<Bundle>() {
+                            @Override
+                            public void run(AccountManagerFuture<Bundle> future) {
+                                if (subscriber.isUnsubscribed()) {
+                                    return;
+                                }
+                                Bundle result;
+                                try {
+                                    result = future.getResult();
+                                    String name = result.getString(AccountManager.KEY_ACCOUNT_NAME);
+                                    String type = result.getString(AccountManager.KEY_ACCOUNT_TYPE);
+                                    String token = result.getString(AccountManager.KEY_AUTHTOKEN);
+                                    Timber.v("[getAuthToken] - name: %s, type: %s, token: %s", name, type, token);
+                                } catch (Exception e) {
+                                    subscriber.onError(e);
+                                    return;
+                                }
+                                subscriber.onNext(result);
+                                subscriber.onCompleted();
+                            }
+                        }, null);
             }
         });
     }
 
-    public Observable<String> getAuthToken(Account account, String authTokenType, Bundle options) {
-//        AccountManagerFuture<Bundle> future = manager.getAuthToken(account,
-//                ACCOUNT_TYPE, false, null, null);
-//
-//        try {
-//            Bundle result = future.getResult();
-//            return result != null ? result.getString(KEY_AUTHTOKEN) : null;
-//        } catch (AccountsException e) {
-//            Log.e(TAG, "Auth token lookup failed", e);
-//            return null;
-//        } catch (IOException e) {
-//            Log.e(TAG, "Auth token lookup failed", e);
-//            return null;
-//        }
-//        return accountManager.getAuthToken(account, authTokenType, options, true, new AccountManagerCallback<Bundle>() {
-//            @Override
-//            public void run(AccountManagerFuture<Bundle> future) {
-//
-//            }
-//        }, null);
-        return Observable.error(new MethodNotSupportedException(""));
+    public Observable<String> getAuthToken(final Account account, final String authTokenType) {
+        return Observable.create(new Observable.OnSubscribe<String>() {
+            @Override
+            public void call(final Subscriber<? super String> subscriber) {
+                if (subscriber.isUnsubscribed()) {
+                    return;
+                }
+                //noinspection deprecation
+                accountManager.getAuthToken(account, authTokenType, false,
+                        new AccountManagerCallback<Bundle>() {
+                            @Override
+                            public void run(AccountManagerFuture<Bundle> future) {
+                                if (subscriber.isUnsubscribed()) {
+                                    return;
+                                }
+                                String token;
+                                try {
+                                    token = future.getResult()
+                                            .getString(AccountManager.KEY_AUTHTOKEN);
+                                } catch (Exception e) {
+                                    subscriber.onError(e);
+                                    return;
+                                }
+                                subscriber.onNext(token);
+                                subscriber.onCompleted();
+                            }
+                        }, null);
+            }
+        });
     }
 
-    public void savePassword(String accountType, String name, String password) {
-        Account account = new Account(name, accountType);
+    public void savePassword(Account account, String password) {
         if (!accountManager.addAccountExplicitly(account, password, null)) {
             accountManager.setPassword(account, password);
         }
+    }
+
+    public void saveAuthToken(Account account, String authTokenType, String authToken) {
+        accountManager.setAuthToken(account, authTokenType, authToken);
     }
 }

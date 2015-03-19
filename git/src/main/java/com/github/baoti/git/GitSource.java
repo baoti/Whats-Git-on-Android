@@ -1,5 +1,9 @@
 package com.github.baoti.git;
 
+import android.app.Activity;
+
+import java.util.List;
+
 import rx.Observable;
 
 /**
@@ -8,5 +12,5 @@ import rx.Observable;
 public interface GitSource {
     String name();
 
-    Observable<Repository> getRepositories(int page, int pageSize);
+    Observable<List<? extends Repository>> getRepositories(Activity activity, int page, int pageSize);
 }

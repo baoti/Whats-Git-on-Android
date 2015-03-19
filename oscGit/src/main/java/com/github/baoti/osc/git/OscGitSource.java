@@ -1,16 +1,19 @@
 package com.github.baoti.osc.git;
 
-import android.accounts.Account;
+import android.accounts.AccountManager;
+import android.app.Activity;
+import android.os.Bundle;
 
 import com.github.baoti.git.GitSource;
 import com.github.baoti.git.Repository;
 import com.github.baoti.git.accounts.AccountUtils;
 import com.github.baoti.osc.git.api.OscGitApi;
 
+import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
 import rx.Observable;
 import rx.functions.Func1;
@@ -27,13 +30,19 @@ public class OscGitSource implements GitSource {
 
     private PublishSubject<String> tokenRequest;
 
-    private OscGitApi apiWithoutToken;
+    private final OscGitTokenInterceptor tokenInterceptor;
+    private final OscGitApi api;
 
     @Inject
-    public OscGitSource(AccountUtils accountUtils, String accountType) {
+    public OscGitSource(AccountUtils accountUtils, @AccountType String accountType) {
         this.accountUtils = accountUtils;
         this.accountType = accountType;
-        apiWithoutToken = restAdapterBuilder().build().create(OscGitApi.class);
+        this.tokenInterceptor = new OscGitTokenInterceptor();
+        api = new RestAdapter.Builder()
+                .setEndpoint(OscGitApi.API_URL)
+                .setRequestInterceptor(tokenInterceptor)
+                .build()
+                .create(OscGitApi.class);
     }
 
     @Override
@@ -42,15 +51,20 @@ public class OscGitSource implements GitSource {
     }
 
     @Override
-    public Observable<Repository> getRepositories(final int page, final int pageSize) {
-        return apiWithToken()
-                .flatMap(new Func1<OscGitApi, Observable<OscGitProject>>() {
+    public Observable<List<? extends Repository>> getRepositories(Activity activity, final int page, final int pageSize) {
+        return apiWithToken(activity)
+                .flatMap(new Func1<OscGitApi, Observable<List<OscGitProject>>>() {
                     @Override
-                    public Observable<OscGitProject> call(OscGitApi oscGitApi) {
+                    public Observable<List<OscGitProject>> call(OscGitApi oscGitApi) {
                         return oscGitApi.listPopularProjects(page, pageSize);
                     }
                 })
-                .cast(Repository.class);
+                .map(new Func1<List<OscGitProject>, List<? extends Repository>>() {
+                    @Override
+                    public List<? extends Repository> call(List<OscGitProject> oscGitProjects) {
+                        return oscGitProjects;
+                    }
+                });
     }
 
     @Override
@@ -58,51 +72,32 @@ public class OscGitSource implements GitSource {
         return name();
     }
 
-    private RestAdapter.Builder restAdapterBuilder() {
-        return new RestAdapter.Builder()
-                .setEndpoint(OscGitApi.API_URL);
-    }
-
-    private Observable<OscGitApi> apiWithToken() {
-        return tokenRequestInterceptor()
-                .map(new Func1<RequestInterceptor, OscGitApi>() {
+    private Observable<OscGitApi> apiWithToken(Activity activity) {
+        return getToken(activity)
+                .map(new Func1<String, OscGitApi>() {
                     @Override
-                    public OscGitApi call(RequestInterceptor interceptor) {
-                        return restAdapterBuilder()
-                                .setRequestInterceptor(interceptor)
-                                .build()
-                                .create(OscGitApi.class);
+                    public OscGitApi call(String s) {
+                        tokenInterceptor.setToken(s);
+                        return api;
                     }
                 });
     }
 
-    private Observable<String> getToken() {
+    private Observable<String> getToken(Activity activity) {
         if (tokenRequest != null) {
-            return tokenRequest;
+            if (!tokenRequest.hasThrowable()) {
+                return tokenRequest;
+            }
         }
         tokenRequest = PublishSubject.create();
-        accountUtils.getAccount(accountType, OscGitConstants.AUTH_TOKEN_TYPE)
-                .flatMap(new Func1<Account, Observable<String>>() {
+        accountUtils.getAuthToken(activity, accountType, OscGitConstants.AUTH_TOKEN_TYPE)
+                .map(new Func1<Bundle, String>() {
                     @Override
-                    public Observable<String> call(Account account) {
-                        return accountUtils.getAuthToken(account);
+                    public String call(Bundle bundle) {
+                        return bundle.getString(AccountManager.KEY_AUTHTOKEN);
                     }
                 })
                 .subscribe(tokenRequest);
         return tokenRequest;
-    }
-
-    private Observable<RequestInterceptor> tokenRequestInterceptor() {
-        return getToken().map(new Func1<String, RequestInterceptor>() {
-            @Override
-            public RequestInterceptor call(final String s) {
-                return new RequestInterceptor() {
-                    @Override
-                    public void intercept(RequestFacade request) {
-                        request.addQueryParam(OscGitConstants.QUERY_PARAM_TOKEN, s);
-                    }
-                };
-            }
-        });
     }
 }
