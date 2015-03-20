@@ -1,8 +1,6 @@
 package com.github.baoti.osc.git;
 
-import android.accounts.AccountManager;
 import android.app.Activity;
-import android.os.Bundle;
 
 import com.github.baoti.git.GitSource;
 import com.github.baoti.git.Repository;
@@ -17,7 +15,6 @@ import javax.inject.Singleton;
 import retrofit.RestAdapter;
 import rx.Observable;
 import rx.functions.Func1;
-import rx.subjects.PublishSubject;
 
 /**
  * Created by liuyedong on 15-3-19.
@@ -26,17 +23,13 @@ import rx.subjects.PublishSubject;
 public class OscGitSource implements GitSource {
 
     private final AccountUtils accountUtils;
-    private final String accountType;
-
-    private PublishSubject<String> tokenRequest;
 
     private final OscGitTokenInterceptor tokenInterceptor;
     private final OscGitApi api;
 
     @Inject
-    public OscGitSource(AccountUtils accountUtils, @AccountType String accountType) {
+    public OscGitSource(AccountUtils accountUtils) {
         this.accountUtils = accountUtils;
-        this.accountType = accountType;
         this.tokenInterceptor = new OscGitTokenInterceptor();
         api = new RestAdapter.Builder()
                 .setEndpoint(OscGitApi.API_URL)
@@ -52,11 +45,11 @@ public class OscGitSource implements GitSource {
 
     @Override
     public Observable<List<? extends Repository>> getRepositories(Activity activity, final int page, final int pageSize) {
-        return apiWithToken(activity)
-                .flatMap(new Func1<OscGitApi, Observable<List<OscGitProject>>>() {
+        return tokenInterceptor.withToken(activity, accountUtils)
+                .flatMap(new Func1<String, Observable<List<OscGitProject>>>() {
                     @Override
-                    public Observable<List<OscGitProject>> call(OscGitApi oscGitApi) {
-                        return oscGitApi.listPopularProjects(page, pageSize);
+                    public Observable<List<OscGitProject>> call(String token) {
+                        return api.listPopularProjects(page, pageSize);
                     }
                 })
                 .map(new Func1<List<OscGitProject>, List<? extends Repository>>() {
@@ -70,34 +63,5 @@ public class OscGitSource implements GitSource {
     @Override
     public String toString() {
         return name();
-    }
-
-    private Observable<OscGitApi> apiWithToken(Activity activity) {
-        return getToken(activity)
-                .map(new Func1<String, OscGitApi>() {
-                    @Override
-                    public OscGitApi call(String s) {
-                        tokenInterceptor.setToken(s);
-                        return api;
-                    }
-                });
-    }
-
-    private Observable<String> getToken(Activity activity) {
-        if (tokenRequest != null) {
-            if (!tokenRequest.hasThrowable()) {
-                return tokenRequest;
-            }
-        }
-        tokenRequest = PublishSubject.create();
-        accountUtils.getAuthToken(activity, accountType, OscGitConstants.AUTH_TOKEN_TYPE)
-                .map(new Func1<Bundle, String>() {
-                    @Override
-                    public String call(Bundle bundle) {
-                        return bundle.getString(AccountManager.KEY_AUTHTOKEN);
-                    }
-                })
-                .subscribe(tokenRequest);
-        return tokenRequest;
     }
 }

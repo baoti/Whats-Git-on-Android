@@ -1,8 +1,6 @@
 package com.github.baoti.coding;
 
-import android.accounts.AccountManager;
 import android.app.Activity;
-import android.os.Bundle;
 
 import com.github.baoti.coding.api.CodingApi;
 import com.github.baoti.coding.api.CodingResponse;
@@ -19,7 +17,6 @@ import javax.inject.Singleton;
 import retrofit.RestAdapter;
 import rx.Observable;
 import rx.functions.Func1;
-import rx.subjects.PublishSubject;
 
 /**
  * Created by liuyedong on 15-3-19.
@@ -28,17 +25,13 @@ import rx.subjects.PublishSubject;
 public class CodingSource implements GitSource {
 
     private final AccountUtils accountUtils;
-    private final String accountType;
-
-    private PublishSubject<String> tokenRequest;
 
     private final CodingSessionInterceptor sessionInterceptor;
     private final CodingApi api;
 
     @Inject
-    public CodingSource(AccountUtils accountUtils, @AccountType String accountType) {
+    public CodingSource(AccountUtils accountUtils) {
         this.accountUtils = accountUtils;
-        this.accountType = accountType;
         sessionInterceptor = new CodingSessionInterceptor();
         api = new RestAdapter.Builder()
                 .setEndpoint(CodingApi.API_URL)
@@ -54,11 +47,11 @@ public class CodingSource implements GitSource {
 
     @Override
     public Observable<List<? extends Repository>> getRepositories(Activity activity, final int page, final int pageSize) {
-        return apiWithToken(activity)
-                .flatMap(new Func1<CodingApi, Observable<CodingResponse<Page<CodingProject>>>>() {
+        return sessionInterceptor.withSession(activity, accountUtils)
+                .flatMap(new Func1<String, Observable<CodingResponse<Page<CodingProject>>>>() {
                     @Override
-                    public Observable<CodingResponse<Page<CodingProject>>> call(CodingApi codingApi) {
-                        return codingApi.listProjects(page, pageSize);
+                    public Observable<CodingResponse<Page<CodingProject>>> call(String session) {
+                        return api.listProjects(page, pageSize);
                     }
                 })
                 .map(new Func1<CodingResponse<Page<CodingProject>>, List<? extends Repository>>() {
@@ -72,34 +65,5 @@ public class CodingSource implements GitSource {
     @Override
     public String toString() {
         return name();
-    }
-
-    private Observable<CodingApi> apiWithToken(Activity activity) {
-        return getToken(activity)
-                .map(new Func1<String, CodingApi>() {
-                    @Override
-                    public CodingApi call(String s) {
-                        sessionInterceptor.setSessionId(s);
-                        return api;
-                    }
-                });
-    }
-
-    private Observable<String> getToken(Activity activity) {
-        if (tokenRequest != null) {
-            if (!tokenRequest.hasThrowable()) {
-                return tokenRequest;
-            }
-        }
-        tokenRequest = PublishSubject.create();
-        accountUtils.getAuthToken(activity, accountType, CodingConstants.AUTH_TOKEN_TYPE)
-                .map(new Func1<Bundle, String>() {
-                    @Override
-                    public String call(Bundle bundle) {
-                        return bundle.getString(AccountManager.KEY_AUTHTOKEN);
-                    }
-                })
-                .subscribe(tokenRequest);
-        return tokenRequest;
     }
 }

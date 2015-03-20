@@ -1,6 +1,10 @@
 package com.github.baoti.coding;
 
+import android.app.Activity;
+
 import com.github.baoti.coding.api.CodingResponse;
+import com.github.baoti.git.accounts.AccountUtils;
+import com.github.baoti.git.accounts.AuthTokenProvider;
 
 import java.net.HttpCookie;
 import java.util.List;
@@ -8,22 +12,24 @@ import java.util.List;
 import retrofit.RequestInterceptor;
 import retrofit.client.Header;
 import retrofit.client.Response;
+import rx.Observable;
 
-public class CodingSessionInterceptor implements RequestInterceptor {
+public class CodingSessionInterceptor extends AuthTokenProvider implements RequestInterceptor {
 
     private static final String KEY_SESSION = "sid";
 
-    private String sessionId;
-
-    public void setSessionId(String s) {
-        sessionId = s;
-    }
-
     @Override
     public void intercept(RequestFacade request) {
+        String sessionId = getAuthToken();
         if (sessionId != null) {
-            request.addHeader("Cookie", "sid=" + sessionId);
+            request.addHeader("Cookie", KEY_SESSION + "=" + sessionId);
         }
+    }
+
+    public Observable<String> withSession(Activity activity, AccountUtils accountUtils) {
+        return provideAuthToken(activity, accountUtils,
+                activity.getString(CodingConstants.ACCOUNT_TYPE_RES),
+                CodingConstants.AUTH_TOKEN_TYPE);
     }
 
     public static String fetchSessionId(Response response) throws NoSessionException {
