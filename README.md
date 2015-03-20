@@ -41,6 +41,37 @@ Source
 - MVC, MVP, MVVM
 
 
+Run
+---
+
+使用 github 模块要求在 github/ 目录下添加 github-client.properties 文件:
+
+内容为:
+
+```
+CLIENT_ID=Your Client ID
+CLIENT_SECRET=Your Client Secret
+```
+
+这两项要求你使用 github 账号创建应用, GitHub 为你提供 Client ID 和 Client Secret.
+
+以下是操作页面:
+
+<https://github.com/settings/applications/>
+
+
+如果你不需要 github 模块, 可以 从 app 模块的 `AppMainModule` 的 `includes` 中删除 `GitHubModule.class`,
+并注释掉 app/build.gradle 文件中的 依赖:
+
+```
+dependencies {
+    compile project(":git")
+    compile project(":coding")
+    compile project(":oscGit")
+//    compile project(":github")
+```
+
+
 Pull Requests
 -------------
 

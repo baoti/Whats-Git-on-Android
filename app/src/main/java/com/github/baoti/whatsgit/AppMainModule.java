@@ -5,6 +5,7 @@ import android.app.Application;
 
 import com.github.baoti.coding.CodingModule;
 import com.github.baoti.git.GitSource;
+import com.github.baoti.github.GitHubModule;
 import com.github.baoti.osc.git.OscGitModule;
 import com.github.baoti.whatsgit.ui.UiModule;
 
@@ -21,7 +22,7 @@ import dagger.Provides;
 @Module(
         includes = {
                 UiModule.class,
-                CodingModule.class, OscGitModule.class
+                CodingModule.class, OscGitModule.class, GitHubModule.class
         }
 )
 public class AppMainModule {

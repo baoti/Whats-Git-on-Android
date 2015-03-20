@@ -1,4 +1,4 @@
-package com.github.baoti.osc.git.accounts;
+package com.github.baoti.github.accounts;
 
 import android.accounts.AbstractAccountAuthenticator;
 import android.accounts.Account;
@@ -11,30 +11,36 @@ import android.os.Bundle;
 import android.text.TextUtils;
 
 import com.github.baoti.git.accounts.AccountAuthenticatorActivity;
-import com.github.baoti.osc.git.OscGitConstants;
-import com.github.baoti.osc.git.api.OscGitApi;
-import com.github.baoti.osc.git.api.OscGitSession;
+import com.github.baoti.github.GitHubConstants;
+import com.github.baoti.github.GitHubTokenInterceptor;
+import com.github.baoti.github.api.GitHubApi;
+import com.github.baoti.github.api.TokenResponse;
 
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
 import timber.log.Timber;
+
+import static com.github.baoti.github.api.TokenRequest.authorize;
 
 /**
  * Created by liuyedong on 15-1-19.
  */
 class AccountAuthenticator extends AbstractAccountAuthenticator {
     private final Context context;
-    private final OscGitApi api;
+    private final GitHubApi api;
     private final String accountType;
+    private final GitHubTokenInterceptor passwordInterceptor;
 
     public AccountAuthenticator(Context context) {
         super(context);
         this.context = context;
-        accountType = context.getString(OscGitConstants.ACCOUNT_TYPE_RES);
+        accountType = context.getString(GitHubConstants.ACCOUNT_TYPE_RES);
+        passwordInterceptor = new GitHubTokenInterceptor();
         this.api = new RestAdapter.Builder()
-                .setEndpoint(OscGitApi.API_URL)
+                .setEndpoint(GitHubApi.API_URL)
+                .setRequestInterceptor(passwordInterceptor)
                 .build()
-                .create(OscGitApi.class);
+                .create(GitHubApi.class);
     }
 
     @Override
@@ -70,10 +76,11 @@ class AccountAuthenticator extends AbstractAccountAuthenticator {
             return result;
         }
 
+        passwordInterceptor.setPassword(account.name, password);
         String authToken;
         try {
-            OscGitSession session = api.login(account.name, password).toBlocking().first();
-            authToken = session.private_token;
+            TokenResponse session = authorize(api).toBlocking().first();
+            authToken = session.token;
         } catch (RetrofitError error) {
             throw new NetworkErrorException(error);
         } catch (Throwable throwable) {

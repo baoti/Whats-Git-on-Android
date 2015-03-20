@@ -35,7 +35,8 @@ class AccountAuthenticator extends AbstractAccountAuthenticator {
         accountType = context.getString(CodingConstants.ACCOUNT_TYPE_RES);
         this.api = new RestAdapter.Builder()
                 .setEndpoint(CodingApi.API_URL)
-                .build().create(CodingApi.class);
+                .build()
+                .create(CodingApi.class);
     }
 
     @Override

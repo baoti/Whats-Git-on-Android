@@ -1,1 +1,1 @@
-include ':app', ':git', ':coding', ':oscGit'
+include ':app', ':git', ':coding', ':oscGit', ':github'

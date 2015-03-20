@@ -1,4 +1,4 @@
-package com.github.baoti.osc.git.accounts;
+package com.github.baoti.github.accounts;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
@@ -18,10 +18,11 @@ import android.widget.Toast;
 import com.github.baoti.git.accounts.AccountAuthenticatorActivity;
 import com.github.baoti.git.accounts.AccountUtils;
 import com.github.baoti.git.util.Contracts;
-import com.github.baoti.osc.git.OscGitConstants;
-import com.github.baoti.osc.git.R;
-import com.github.baoti.osc.git.api.OscGitApi;
-import com.github.baoti.osc.git.api.OscGitSession;
+import com.github.baoti.github.GitHubConstants;
+import com.github.baoti.github.GitHubTokenInterceptor;
+import com.github.baoti.github.R;
+import com.github.baoti.github.api.GitHubApi;
+import com.github.baoti.github.api.TokenResponse;
 
 import retrofit.RestAdapter;
 import rx.Observer;
@@ -34,6 +35,7 @@ import static android.accounts.AccountManager.KEY_ACCOUNT_NAME;
 import static android.accounts.AccountManager.KEY_ACCOUNT_TYPE;
 import static android.accounts.AccountManager.KEY_AUTHTOKEN;
 import static butterknife.ButterKnife.findById;
+import static com.github.baoti.github.api.TokenRequest.authorize;
 import static rx.android.app.AppObservable.bindFragment;
 
 /**
@@ -47,7 +49,8 @@ public class LoginFragment extends Fragment {
 
     Button login;
 
-    private OscGitApi api;
+    private GitHubTokenInterceptor tokenInterceptor;
+    private GitHubApi api;
     private String accountType;
     private AccountUtils accountUtils;
 
@@ -56,16 +59,19 @@ public class LoginFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        accountType = getString(OscGitConstants.ACCOUNT_TYPE_RES);
+        accountType = getString(GitHubConstants.ACCOUNT_TYPE_RES);
+        tokenInterceptor = new GitHubTokenInterceptor();
         api = new RestAdapter.Builder()
-                .setEndpoint(OscGitApi.API_URL)
-                .build().create(OscGitApi.class);
+                .setEndpoint(GitHubApi.API_URL)
+                .setRequestInterceptor(tokenInterceptor)
+                .build()
+                .create(GitHubApi.class);
         accountUtils = new AccountUtils(AccountManager.get(getActivity()));
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.osc_git_fragment_login, container, false);
+        return inflater.inflate(R.layout.github_fragment_login, container, false);
     }
 
     @Override
@@ -93,22 +99,23 @@ public class LoginFragment extends Fragment {
 
     private void onLoginClick() {
         if (TextUtils.isEmpty(email.getText())) {
-            email.setError(getString(R.string.osc_git_invalid_email));
+            email.setError(getString(R.string.github_invalid_email));
             return;
         }
         if (TextUtils.isEmpty(password.getText())) {
-            password.setError(getString(R.string.osc_git_invalid_password));
+            password.setError(getString(R.string.github_invalid_password));
             return;
         }
 
         final String emailText = email.getText().toString();
         final String passwordText = password.getText().toString();
 
-        loginSubscription = bindFragment(this, api.login(emailText, passwordText)
-                .map(new Func1<OscGitSession, String>() {
+        tokenInterceptor.setPassword(emailText, passwordText);
+        loginSubscription = bindFragment(this, authorize(api)
+                .map(new Func1<TokenResponse, String>() {
                     @Override
-                    public String call(OscGitSession oscGitSession) {
-                        return Contracts.notNull(oscGitSession.private_token, "token is null");
+                    public String call(TokenResponse tokenResponse) {
+                        return Contracts.notNull(tokenResponse.token, "token is null");
                     }
                 })
                 .doOnNext(new Action1<String>() {
@@ -117,7 +124,7 @@ public class LoginFragment extends Fragment {
                         Account account = new Account(emailText, accountType);
                         accountUtils.savePassword(account, passwordText);
                         accountUtils.saveAuthToken(account,
-                                OscGitConstants.AUTH_TOKEN_TYPE, s);
+                                GitHubConstants.AUTH_TOKEN_TYPE, s);
                     }
                 }))
                 .subscribe(new Observer<String>() {

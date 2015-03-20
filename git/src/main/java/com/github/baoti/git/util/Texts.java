@@ -1,5 +1,9 @@
 package com.github.baoti.git.util;
 
+import android.util.Base64;
+
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -7,6 +11,33 @@ import java.security.NoSuchAlgorithmException;
  * Created by liuyedong on 15-3-20.
  */
 public class Texts {
+    public static final Charset ISO_8859_1 = Charset.forName("iso-8859-1");
+    public static final Charset UTF_8 = Charset.forName("UTF-8");
+
+    /** null 安全版的 toString() */
+    public static String str(CharSequence s) {
+        return str(s, "");
+    }
+
+    /** null 安全 的 toString() */
+    public static String str(Object o, String defVal) {
+        return o == null ? defVal : o.toString();
+    }
+
+    public static String strOrThrow(Object o, String msg) {
+        if (o == null) {
+            throw new NullPointerException(msg);
+        }
+        return o.toString();
+    }
+
+    public static byte[] sha1(byte[]... bytes) {
+        return digest("SHA-1", bytes);
+    }
+
+    public static byte[] md5(byte[]... bytes) {
+        return digest("MD5", bytes);
+    }
 
     public static byte[] digest(String algorithm, byte[]... bytes) {
         try {
@@ -50,5 +81,15 @@ public class Texts {
             buf[c++] = digits[b & 0xf];
         }
         return new String(buf);
+    }
+
+    public static String base64(String s) {
+        byte[] sourceBytes;
+        try {
+            sourceBytes = s.getBytes("UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException("UTF-8 NOT SUPPORTED");
+        }
+        return Base64.encodeToString(sourceBytes, Base64.DEFAULT);
     }
 }

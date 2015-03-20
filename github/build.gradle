@@ -1,29 +1,30 @@
-apply plugin: 'com.android.application'
+apply plugin: 'com.android.library'
+
+File localPropsFile = file("github-client.properties")
+Properties props = new Properties()
+if (localPropsFile.exists()) {
+    localPropsFile.withInputStream {
+        stream -> props.load(stream)
+    }
+}
 
 android {
     compileSdkVersion androidCompileSdkVersion
     buildToolsVersion androidBuildToolsVersion
 
     defaultConfig {
-        applicationId "com.github.baoti.whatsgit"
         minSdkVersion 9
         targetSdkVersion androidTargetSdkVersion
         versionCode 1
         versionName "1.0"
-    }
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
+
+        buildConfigField "String", "GITHUB_CLIENT_ID", '"' + props['CLIENT_ID'] + '"'
+        buildConfigField "String", "GITHUB_CLIENT_SECRET", '"' + props['CLIENT_SECRET'] + '"'
     }
 }
 
 dependencies {
     compile project(":git")
-    compile project(":coding")
-    compile project(":oscGit")
-    compile project(":github")
 
     // Dagger
     compile 'com.squareup.dagger:dagger:1.2.2'

@@ -101,6 +101,8 @@ public class AccountUtils {
     }
 
     public void saveAuthToken(Account account, String authTokenType, String authToken) {
-        accountManager.setAuthToken(account, authTokenType, authToken);
+        if (authToken != null) {
+            accountManager.setAuthToken(account, authTokenType, authToken);
+        }
     }
 }
