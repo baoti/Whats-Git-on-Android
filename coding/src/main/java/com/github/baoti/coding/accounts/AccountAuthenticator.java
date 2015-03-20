@@ -12,14 +12,11 @@ import android.text.TextUtils;
 
 import com.github.baoti.coding.CodingConstants;
 import com.github.baoti.coding.CodingSessionInterceptor;
-import com.github.baoti.coding.R;
 import com.github.baoti.coding.api.CodingApi;
-import com.github.baoti.git.accounts.LoginActivity;
+import com.github.baoti.git.accounts.AccountAuthenticatorActivity;
 
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
-import retrofit.client.Response;
-import rx.Observable;
 import timber.log.Timber;
 
 /**
@@ -49,7 +46,7 @@ class AccountAuthenticator extends AbstractAccountAuthenticator {
     public Bundle addAccount(AccountAuthenticatorResponse response, String accountType, String authTokenType, String[] requiredFeatures, Bundle options) throws NetworkErrorException {
         Timber.d("[addAccount] - accountType: %s, authTokenType: %s", accountType, authTokenType);
         Bundle result = new Bundle();
-        result.putParcelable(AccountManager.KEY_INTENT, createActivityIntent(response, authTokenType));
+        result.putParcelable(AccountManager.KEY_INTENT, createActivityIntent(response));
         return result;
     }
 
@@ -68,7 +65,7 @@ class AccountAuthenticator extends AbstractAccountAuthenticator {
         AccountManager am = AccountManager.get(context);
         String password = am.getPassword(account);
         if (TextUtils.isEmpty(password)) {
-            result.putParcelable(AccountManager.KEY_INTENT, createActivityIntent(response, authTokenType));
+            result.putParcelable(AccountManager.KEY_INTENT, createActivityIntent(response));
             return result;
         }
 
@@ -84,7 +81,7 @@ class AccountAuthenticator extends AbstractAccountAuthenticator {
         }
 
         if (TextUtils.isEmpty(authToken)) {
-            result.putParcelable(AccountManager.KEY_INTENT, createActivityIntent(response, authTokenType));
+            result.putParcelable(AccountManager.KEY_INTENT, createActivityIntent(response));
         } else {
             result.putString(AccountManager.KEY_ACCOUNT_NAME, account.name);
             result.putString(AccountManager.KEY_ACCOUNT_TYPE, accountType);
@@ -94,9 +91,9 @@ class AccountAuthenticator extends AbstractAccountAuthenticator {
         return result;
     }
 
-    private Intent createActivityIntent(AccountAuthenticatorResponse response, String authTokenType) {
-        return LoginActivity.actionAuthenticate(context, response, accountType, authTokenType,
-                R.layout.panel_login);
+    private Intent createActivityIntent(AccountAuthenticatorResponse response) {
+        return AccountAuthenticatorActivity.authenticate(
+                context, response, LoginFragment.class, accountType);
     }
 
     @Override

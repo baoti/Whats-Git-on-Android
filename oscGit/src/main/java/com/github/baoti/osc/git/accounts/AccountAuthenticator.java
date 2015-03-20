@@ -10,9 +10,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 
-import com.github.baoti.git.accounts.LoginActivity;
+import com.github.baoti.git.accounts.AccountAuthenticatorActivity;
 import com.github.baoti.osc.git.OscGitConstants;
-import com.github.baoti.osc.git.R;
 import com.github.baoti.osc.git.api.OscGitApi;
 import com.github.baoti.osc.git.api.OscGitSession;
 
@@ -93,8 +92,8 @@ class AccountAuthenticator extends AbstractAccountAuthenticator {
     }
 
     private Intent createActivityIntent(AccountAuthenticatorResponse response, String authTokenType) {
-        return LoginActivity.actionAuthenticate(context, response, accountType, authTokenType,
-                R.layout.panel_login);
+        return AccountAuthenticatorActivity.authenticate(
+                context, response, LoginFragment.class, accountType);
     }
 
     @Override

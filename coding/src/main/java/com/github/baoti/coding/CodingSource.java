@@ -5,6 +5,8 @@ import android.app.Activity;
 import android.os.Bundle;
 
 import com.github.baoti.coding.api.CodingApi;
+import com.github.baoti.coding.api.CodingResponse;
+import com.github.baoti.coding.api.Page;
 import com.github.baoti.git.GitSource;
 import com.github.baoti.git.Repository;
 import com.github.baoti.git.accounts.AccountUtils;
@@ -52,8 +54,13 @@ public class CodingSource implements GitSource {
 
     @Override
     public Observable<List<? extends Repository>> getRepositories(Activity activity, int page, int pageSize) {
-
-        return Observable.empty();
+        return api.listProjects(page, pageSize)
+                .map(new Func1<CodingResponse<Page<CodingProject>>, List<? extends Repository>>() {
+                    @Override
+                    public List<? extends Repository> call(CodingResponse<Page<CodingProject>> pageCodingResponse) {
+                        return pageCodingResponse.data.list;
+                    }
+                });
     }
 
     @Override
