@@ -77,7 +77,7 @@ class AccountAuthenticator extends AbstractAccountAuthenticator {
             throw new NetworkErrorException(error);
         } catch (Throwable throwable) {
             Timber.w(throwable, "[getAuthToken]");
-            return result;
+            authToken = null;
         }
 
         if (TextUtils.isEmpty(authToken)) {

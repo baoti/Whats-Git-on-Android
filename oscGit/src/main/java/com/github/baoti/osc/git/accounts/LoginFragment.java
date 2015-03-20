@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.github.baoti.git.accounts.AccountAuthenticatorActivity;
 import com.github.baoti.git.accounts.AccountUtils;
@@ -127,6 +128,7 @@ public class LoginFragment extends Fragment {
                     @Override
                     public void onError(Throwable e) {
                         Timber.v(e, "login failed");
+                        Toast.makeText(getActivity(), "Login failed", Toast.LENGTH_SHORT).show();
                     }
 
                     @Override

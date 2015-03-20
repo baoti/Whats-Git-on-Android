@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.github.baoti.coding.CodingConstants;
 import com.github.baoti.coding.CodingSessionInterceptor;
@@ -25,6 +26,7 @@ import retrofit.RestAdapter;
 import retrofit.client.Response;
 import rx.Observer;
 import rx.Subscription;
+import rx.exceptions.OnErrorFailedException;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import timber.log.Timber;
@@ -33,6 +35,7 @@ import static android.accounts.AccountManager.KEY_ACCOUNT_NAME;
 import static android.accounts.AccountManager.KEY_ACCOUNT_TYPE;
 import static android.accounts.AccountManager.KEY_AUTHTOKEN;
 import static butterknife.ButterKnife.findById;
+import static com.github.baoti.coding.CodingUtils.passwordSha1;
 import static rx.android.app.AppObservable.bindFragment;
 
 /**
@@ -107,11 +110,15 @@ public class LoginFragment extends Fragment {
         final String passwordText = password.getText().toString();
         String captchaText = TextUtils.isEmpty(captcha.getText()) ? null : captcha.getText().toString();
 
-        loginSubscription = bindFragment(this, api.login(emailText, passwordText, captchaText)
+        loginSubscription = bindFragment(this, api.login(emailText, passwordSha1(passwordText), captchaText)
                 .map(new Func1<Response, String>() {
                     @Override
                     public String call(Response response) {
-                        return CodingSessionInterceptor.fetchSessionId(response);
+                        try {
+                            return CodingSessionInterceptor.fetchSessionId(response);
+                        } catch (CodingSessionInterceptor.NoSessionException e) {
+                            throw new OnErrorFailedException(e);
+                        }
                     }
                 })
                 .doOnNext(new Action1<String>() {
@@ -132,6 +139,7 @@ public class LoginFragment extends Fragment {
                     @Override
                     public void onError(Throwable e) {
                         Timber.v(e, "login failed");
+                        Toast.makeText(getActivity(), "Login failed", Toast.LENGTH_SHORT).show();
                     }
 
                     @Override

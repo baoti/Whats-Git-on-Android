@@ -53,8 +53,14 @@ public class CodingSource implements GitSource {
     }
 
     @Override
-    public Observable<List<? extends Repository>> getRepositories(Activity activity, int page, int pageSize) {
-        return api.listProjects(page, pageSize)
+    public Observable<List<? extends Repository>> getRepositories(Activity activity, final int page, final int pageSize) {
+        return apiWithToken(activity)
+                .flatMap(new Func1<CodingApi, Observable<CodingResponse<Page<CodingProject>>>>() {
+                    @Override
+                    public Observable<CodingResponse<Page<CodingProject>>> call(CodingApi codingApi) {
+                        return codingApi.listProjects(page, pageSize);
+                    }
+                })
                 .map(new Func1<CodingResponse<Page<CodingProject>>, List<? extends Repository>>() {
                     @Override
                     public List<? extends Repository> call(CodingResponse<Page<CodingProject>> pageCodingResponse) {

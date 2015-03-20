@@ -19,6 +19,8 @@ import retrofit.RestAdapter;
 import retrofit.RetrofitError;
 import timber.log.Timber;
 
+import static com.github.baoti.coding.CodingUtils.passwordSha1;
+
 /**
  * Created by liuyedong on 15-1-19.
  */
@@ -72,12 +74,12 @@ class AccountAuthenticator extends AbstractAccountAuthenticator {
         String authToken;
         try {
             authToken = CodingSessionInterceptor.fetchSessionId(
-                    api.login(account.name, password, null).toBlocking().first());
+                    api.login(account.name, passwordSha1(password), null).toBlocking().first());
         } catch (RetrofitError error) {
             throw new NetworkErrorException(error);
         } catch (Throwable throwable) {
             Timber.w(throwable, "[getAuthToken]");
-            return result;
+            authToken = null;
         }
 
         if (TextUtils.isEmpty(authToken)) {
