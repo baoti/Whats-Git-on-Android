@@ -1,22 +1,22 @@
 package com.github.baoti.github;
 
 import android.app.Activity;
-import android.util.Base64;
 
 import com.github.baoti.git.accounts.AccountUtils;
 import com.github.baoti.git.accounts.AuthTokenProvider;
-import com.github.baoti.git.util.Texts;
+
+import javax.inject.Inject;
 
 import retrofit.RequestInterceptor;
 import rx.Observable;
 
-public class GitHubTokenInterceptor extends AuthTokenProvider implements RequestInterceptor {
-    private String username;
-    private String password;
+import static com.github.baoti.git.util.Texts.basicAuthorization;
 
-    public void setPassword(String username, String password) {
-        this.username = username;
-        this.password = password;
+public class GitHubTokenInterceptor extends AuthTokenProvider implements RequestInterceptor {
+
+    @Inject
+    public GitHubTokenInterceptor(AccountUtils accountUtils, @AccountType String accountType) {
+        super(accountUtils, accountType, GitHubConstants.AUTH_TOKEN_TYPE);
     }
 
     @Override
@@ -26,20 +26,11 @@ public class GitHubTokenInterceptor extends AuthTokenProvider implements Request
 
         String token = getAuthToken();
         if (token != null) {
-            request.addHeader("Authorization", "Basic " + encodeBasic(token, ""));
-        } else if (username != null && password != null) {
-            request.addHeader("Authorization", "Basic " + encodeBasic(username, password));
+            request.addHeader("Authorization", basicAuthorization(token, ""));
         }
     }
 
-    public Observable<String> withToken(Activity activity, AccountUtils accountUtils) {
-        return provideAuthToken(activity, accountUtils,
-                activity.getString(GitHubConstants.ACCOUNT_TYPE_RES),
-                GitHubConstants.AUTH_TOKEN_TYPE);
-    }
-
-    public static String encodeBasic(String username, String password) {
-        String text = username + ":" + Texts.str(password);
-        return Base64.encodeToString(text.getBytes(Texts.UTF_8), Base64.DEFAULT);
+    public <T> Observable<T> withToken(Activity activity, Observable<T> request) {
+        return this.<T>prepareAuthToken(activity).concatWith(request);
     }
 }

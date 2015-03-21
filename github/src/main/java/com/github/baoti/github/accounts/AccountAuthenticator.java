@@ -12,7 +12,6 @@ import android.text.TextUtils;
 
 import com.github.baoti.git.accounts.AccountAuthenticatorActivity;
 import com.github.baoti.github.GitHubConstants;
-import com.github.baoti.github.GitHubTokenInterceptor;
 import com.github.baoti.github.api.GitHubApi;
 import com.github.baoti.github.api.TokenResponse;
 
@@ -29,13 +28,13 @@ class AccountAuthenticator extends AbstractAccountAuthenticator {
     private final Context context;
     private final GitHubApi api;
     private final String accountType;
-    private final GitHubTokenInterceptor passwordInterceptor;
+    private final PasswordInterceptor passwordInterceptor;
 
     public AccountAuthenticator(Context context) {
         super(context);
         this.context = context;
         accountType = context.getString(GitHubConstants.ACCOUNT_TYPE_RES);
-        passwordInterceptor = new GitHubTokenInterceptor();
+        passwordInterceptor = new PasswordInterceptor();
         this.api = new RestAdapter.Builder()
                 .setEndpoint(GitHubApi.API_URL)
                 .setRequestInterceptor(passwordInterceptor)
@@ -53,7 +52,7 @@ class AccountAuthenticator extends AbstractAccountAuthenticator {
     public Bundle addAccount(AccountAuthenticatorResponse response, String accountType, String authTokenType, String[] requiredFeatures, Bundle options) throws NetworkErrorException {
         Timber.d("[addAccount] - accountType: %s, authTokenType: %s", accountType, authTokenType);
         Bundle result = new Bundle();
-        result.putParcelable(AccountManager.KEY_INTENT, createActivityIntent(response, authTokenType));
+        result.putParcelable(AccountManager.KEY_INTENT, createActivityIntent(response));
         return result;
     }
 
@@ -72,7 +71,7 @@ class AccountAuthenticator extends AbstractAccountAuthenticator {
         AccountManager am = AccountManager.get(context);
         String password = am.getPassword(account);
         if (TextUtils.isEmpty(password)) {
-            result.putParcelable(AccountManager.KEY_INTENT, createActivityIntent(response, authTokenType));
+            result.putParcelable(AccountManager.KEY_INTENT, createActivityIntent(response));
             return result;
         }
 
@@ -89,7 +88,7 @@ class AccountAuthenticator extends AbstractAccountAuthenticator {
         }
 
         if (TextUtils.isEmpty(authToken)) {
-            result.putParcelable(AccountManager.KEY_INTENT, createActivityIntent(response, authTokenType));
+            result.putParcelable(AccountManager.KEY_INTENT, createActivityIntent(response));
         } else {
             result.putString(AccountManager.KEY_ACCOUNT_NAME, account.name);
             result.putString(AccountManager.KEY_ACCOUNT_TYPE, accountType);
@@ -99,7 +98,7 @@ class AccountAuthenticator extends AbstractAccountAuthenticator {
         return result;
     }
 
-    private Intent createActivityIntent(AccountAuthenticatorResponse response, String authTokenType) {
+    private Intent createActivityIntent(AccountAuthenticatorResponse response) {
         return AccountAuthenticatorActivity.authenticate(
                 context, response, LoginFragment.class, accountType);
     }

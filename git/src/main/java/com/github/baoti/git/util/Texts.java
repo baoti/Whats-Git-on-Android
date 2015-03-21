@@ -2,7 +2,6 @@ package com.github.baoti.git.util;
 
 import android.util.Base64;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -83,13 +82,8 @@ public class Texts {
         return new String(buf);
     }
 
-    public static String base64(String s) {
-        byte[] sourceBytes;
-        try {
-            sourceBytes = s.getBytes("UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException("UTF-8 NOT SUPPORTED");
-        }
-        return Base64.encodeToString(sourceBytes, Base64.DEFAULT);
+    public static String basicAuthorization(String username, String password) {
+        String text = username + ":" + Texts.str(password);
+        return "Basic " + Base64.encodeToString(text.getBytes(Texts.UTF_8), Base64.DEFAULT);
     }
 }

@@ -23,9 +23,10 @@ import java.util.List;
 import javax.inject.Inject;
 
 import rx.Observer;
-import rx.functions.Action1;
 import rx.subscriptions.CompositeSubscription;
 import timber.log.Timber;
+
+import static rx.android.app.AppObservable.bindActivity;
 
 
 public class MainActivity extends ActionBarActivity
@@ -64,6 +65,12 @@ public class MainActivity extends ActionBarActivity
     }
 
     @Override
+    protected void onDestroy() {
+        subscriptions.unsubscribe();
+        super.onDestroy();
+    }
+
+    @Override
     public void onNavigationDrawerItemSelected(int position) {
         // update the main content by replacing fragments
         FragmentManager fragmentManager = getSupportFragmentManager();
@@ -76,7 +83,8 @@ public class MainActivity extends ActionBarActivity
         int position = number - 1;
         if (position >= 0 && position < gitSources.length) {
             mTitle = gitSources[position].toString();
-            subscriptions.add(gitSources[position].getRepositories(this, 1, 30)
+            subscriptions.add(
+                    bindActivity(this, gitSources[position].getRepositories(this, 1, 30))
                     .subscribe(new Observer<List<? extends Repository>>() {
                         @Override
                         public void onCompleted() {

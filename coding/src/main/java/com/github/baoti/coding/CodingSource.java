@@ -7,7 +7,6 @@ import com.github.baoti.coding.api.CodingResponse;
 import com.github.baoti.coding.api.Page;
 import com.github.baoti.git.GitSource;
 import com.github.baoti.git.Repository;
-import com.github.baoti.git.accounts.AccountUtils;
 
 import java.util.List;
 
@@ -24,18 +23,15 @@ import rx.functions.Func1;
 @Singleton
 public class CodingSource implements GitSource {
 
-    private final AccountUtils accountUtils;
-
     private final CodingSessionInterceptor sessionInterceptor;
     private final CodingApi api;
 
     @Inject
-    public CodingSource(AccountUtils accountUtils) {
-        this.accountUtils = accountUtils;
-        sessionInterceptor = new CodingSessionInterceptor();
+    public CodingSource(CodingSessionInterceptor interceptor) {
+        sessionInterceptor = interceptor;
         api = new RestAdapter.Builder()
                 .setEndpoint(CodingApi.API_URL)
-                .setRequestInterceptor(sessionInterceptor)
+                .setRequestInterceptor(interceptor)
                 .build()
                 .create(CodingApi.class);
     }
@@ -47,13 +43,7 @@ public class CodingSource implements GitSource {
 
     @Override
     public Observable<List<? extends Repository>> getRepositories(Activity activity, final int page, final int pageSize) {
-        return sessionInterceptor.withSession(activity, accountUtils)
-                .flatMap(new Func1<String, Observable<CodingResponse<Page<CodingProject>>>>() {
-                    @Override
-                    public Observable<CodingResponse<Page<CodingProject>>> call(String session) {
-                        return api.listProjects(page, pageSize);
-                    }
-                })
+        return sessionInterceptor.withSession(activity, api.listProjects(page, pageSize))
                 .map(new Func1<CodingResponse<Page<CodingProject>>, List<? extends Repository>>() {
                     @Override
                     public List<? extends Repository> call(CodingResponse<Page<CodingProject>> pageCodingResponse) {

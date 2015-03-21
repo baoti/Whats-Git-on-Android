@@ -4,7 +4,6 @@ import android.app.Activity;
 
 import com.github.baoti.git.GitSource;
 import com.github.baoti.git.Repository;
-import com.github.baoti.git.accounts.AccountUtils;
 import com.github.baoti.osc.git.api.OscGitApi;
 
 import java.util.List;
@@ -22,18 +21,15 @@ import rx.functions.Func1;
 @Singleton
 public class OscGitSource implements GitSource {
 
-    private final AccountUtils accountUtils;
-
     private final OscGitTokenInterceptor tokenInterceptor;
     private final OscGitApi api;
 
     @Inject
-    public OscGitSource(AccountUtils accountUtils) {
-        this.accountUtils = accountUtils;
-        this.tokenInterceptor = new OscGitTokenInterceptor();
+    public OscGitSource(OscGitTokenInterceptor interceptor) {
+        this.tokenInterceptor = interceptor;
         api = new RestAdapter.Builder()
                 .setEndpoint(OscGitApi.API_URL)
-                .setRequestInterceptor(tokenInterceptor)
+                .setRequestInterceptor(interceptor)
                 .build()
                 .create(OscGitApi.class);
     }
@@ -45,13 +41,7 @@ public class OscGitSource implements GitSource {
 
     @Override
     public Observable<List<? extends Repository>> getRepositories(Activity activity, final int page, final int pageSize) {
-        return tokenInterceptor.withToken(activity, accountUtils)
-                .flatMap(new Func1<String, Observable<List<OscGitProject>>>() {
-                    @Override
-                    public Observable<List<OscGitProject>> call(String token) {
-                        return api.listPopularProjects(page, pageSize);
-                    }
-                })
+        return tokenInterceptor.withToken(activity, api.listPopularProjects(page, pageSize))
                 .map(new Func1<List<OscGitProject>, List<? extends Repository>>() {
                     @Override
                     public List<? extends Repository> call(List<OscGitProject> oscGitProjects) {

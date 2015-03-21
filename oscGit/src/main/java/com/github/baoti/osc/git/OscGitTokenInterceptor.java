@@ -5,10 +5,17 @@ import android.app.Activity;
 import com.github.baoti.git.accounts.AccountUtils;
 import com.github.baoti.git.accounts.AuthTokenProvider;
 
+import javax.inject.Inject;
+
 import retrofit.RequestInterceptor;
 import rx.Observable;
 
 public class OscGitTokenInterceptor extends AuthTokenProvider implements RequestInterceptor {
+
+    @Inject
+    public OscGitTokenInterceptor(AccountUtils accountUtils, @AccountType String accountType) {
+        super(accountUtils, accountType, OscGitConstants.AUTH_TOKEN_TYPE);
+    }
 
     @Override
     public void intercept(RequestFacade request) {
@@ -18,9 +25,7 @@ public class OscGitTokenInterceptor extends AuthTokenProvider implements Request
         }
     }
 
-    public Observable<String> withToken(Activity activity, AccountUtils accountUtils) {
-        return provideAuthToken(activity, accountUtils,
-                activity.getString(OscGitConstants.ACCOUNT_TYPE_RES),
-                OscGitConstants.AUTH_TOKEN_TYPE);
+    public <T> Observable<T> withToken(Activity activity, Observable<T> request) {
+        return this.<T>prepareAuthToken(activity).concatWith(request);
     }
 }

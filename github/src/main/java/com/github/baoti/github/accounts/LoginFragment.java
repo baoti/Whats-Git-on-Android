@@ -19,7 +19,6 @@ import com.github.baoti.git.accounts.AccountAuthenticatorActivity;
 import com.github.baoti.git.accounts.AccountUtils;
 import com.github.baoti.git.util.Contracts;
 import com.github.baoti.github.GitHubConstants;
-import com.github.baoti.github.GitHubTokenInterceptor;
 import com.github.baoti.github.R;
 import com.github.baoti.github.api.GitHubApi;
 import com.github.baoti.github.api.TokenResponse;
@@ -49,7 +48,7 @@ public class LoginFragment extends Fragment {
 
     Button login;
 
-    private GitHubTokenInterceptor tokenInterceptor;
+    private PasswordInterceptor passwordInterceptor;
     private GitHubApi api;
     private String accountType;
     private AccountUtils accountUtils;
@@ -60,10 +59,10 @@ public class LoginFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         accountType = getString(GitHubConstants.ACCOUNT_TYPE_RES);
-        tokenInterceptor = new GitHubTokenInterceptor();
+        passwordInterceptor = new PasswordInterceptor();
         api = new RestAdapter.Builder()
                 .setEndpoint(GitHubApi.API_URL)
-                .setRequestInterceptor(tokenInterceptor)
+                .setRequestInterceptor(passwordInterceptor)
                 .build()
                 .create(GitHubApi.class);
         accountUtils = new AccountUtils(AccountManager.get(getActivity()));
@@ -110,7 +109,7 @@ public class LoginFragment extends Fragment {
         final String emailText = email.getText().toString();
         final String passwordText = password.getText().toString();
 
-        tokenInterceptor.setPassword(emailText, passwordText);
+        passwordInterceptor.setPassword(emailText, passwordText);
         loginSubscription = bindFragment(this, authorize(api)
                 .map(new Func1<TokenResponse, String>() {
                     @Override

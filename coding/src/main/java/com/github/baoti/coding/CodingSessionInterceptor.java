@@ -9,14 +9,23 @@ import com.github.baoti.git.accounts.AuthTokenProvider;
 import java.net.HttpCookie;
 import java.util.List;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
 import retrofit.RequestInterceptor;
 import retrofit.client.Header;
 import retrofit.client.Response;
 import rx.Observable;
 
+@Singleton
 public class CodingSessionInterceptor extends AuthTokenProvider implements RequestInterceptor {
 
     private static final String KEY_SESSION = "sid";
+
+    @Inject
+    public CodingSessionInterceptor(AccountUtils accountUtils, @AccountType String accountType) {
+        super(accountUtils, accountType, CodingConstants.AUTH_TOKEN_TYPE);
+    }
 
     @Override
     public void intercept(RequestFacade request) {
@@ -26,10 +35,8 @@ public class CodingSessionInterceptor extends AuthTokenProvider implements Reque
         }
     }
 
-    public Observable<String> withSession(Activity activity, AccountUtils accountUtils) {
-        return provideAuthToken(activity, accountUtils,
-                activity.getString(CodingConstants.ACCOUNT_TYPE_RES),
-                CodingConstants.AUTH_TOKEN_TYPE);
+    public <T> Observable<T> withSession(Activity activity, Observable<T> request) {
+        return this.<T>prepareAuthToken(activity).concatWith(request);
     }
 
     public static String fetchSessionId(Response response) throws NoSessionException {
@@ -61,12 +68,5 @@ public class CodingSessionInterceptor extends AuthTokenProvider implements Reque
             super(detailMessage);
         }
 
-        public NoSessionException(String detailMessage, Throwable throwable) {
-            super(detailMessage, throwable);
-        }
-
-        public NoSessionException(Throwable throwable) {
-            super(throwable);
-        }
     }
 }
