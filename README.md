@@ -5,6 +5,8 @@ Whats Git on Android
 
 一个 **烧脑** 的开源Android项目.
 
+一个采用 Reactive（反应型/响应式） 模式开发的 Android 应用。
+
 
 Source
 ------
@@ -15,12 +17,13 @@ Source
 
 - 使用 Gradle 构建项目
 - 不兼容 Eclipse 结构
-- 多模块. 最主要是 git 与 app. 另外的 coding 与 oscGit 用于接入特定提供商
+- 多模块. 最主要是 git 与 app. 另外的 coding, oscGit 以及 github 用于接入特定提供商
 - 使用 AccountManager 实现账号管理 .
 - XXX 和 WTF
 - 使用 Picasso 加载图片
   (目前只声明了依赖)
 - 使用 Retrofit 请求 RESTful API
+  (期待它的 2.0 版本)
 - 使用 Timber 显示 LOG
   (我很懒, 所以用它)
 - 使用 ButterKnife 绑定 view 与 事件
@@ -41,10 +44,10 @@ Source
 - MVC, MVP, MVVM
 
 
-Run
----
+GitHub
+------
 
-使用 github 模块要求在 github/ 目录下添加 github-client.properties 文件:
+1. 使用 github 模块要求在 github/ 目录下添加 github-client.properties 文件:
 
 内容为:
 
@@ -60,7 +63,7 @@ CLIENT_SECRET=Your Client Secret
 <https://github.com/settings/applications/>
 
 
-如果你不需要 github 模块, 可以 从 app 模块的 `AppMainModule` 的 `includes` 中删除 `GitHubModule.class`,
+2. 如果你不需要 github 模块, 可以 从 app 模块的 `AppMainModule` 的 `includes` 中删除 `GitHubModule.class`,
 并注释掉 app/build.gradle 文件中的 依赖:
 
 ```
@@ -71,13 +74,15 @@ dependencies {
 //    compile project(":github")
 ```
 
+3. GitHub 数据的加载更多暂不支持。待 Retrofit 2.0 出来之后再作支持。
+
 
 Pull Requests
 -------------
 
 项目代码尚未稳定, 如需 PR , 请先添加一条 讨论, 以说明意图.
 
-欢迎 在 讨论中 讨论/吐槽/夸赞 本项目.
+欢迎 在 Issues(讨论) 中 讨论/吐槽/夸赞 本项目.
 
 
 题外话
