@@ -4,6 +4,7 @@ import android.app.Activity;
 
 import com.github.baoti.git.accounts.AccountUtils;
 import com.github.baoti.git.accounts.AuthTokenProvider;
+import com.github.baoti.git.util.RxUtils;
 
 import javax.inject.Inject;
 
@@ -26,6 +27,6 @@ public class OscGitTokenInterceptor extends AuthTokenProvider implements Request
     }
 
     public <T> Observable<T> withToken(Activity activity, Observable<T> request) {
-        return this.<T>prepareAuthToken(activity).concatWith(request);
+        return RxUtils.afterDo(provideAuthToken(activity), request);
     }
 }

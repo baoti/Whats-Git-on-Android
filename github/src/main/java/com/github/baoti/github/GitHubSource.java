@@ -14,6 +14,7 @@ import javax.inject.Singleton;
 import retrofit.RestAdapter;
 import rx.Observable;
 import rx.functions.Func1;
+import rx.subjects.PublishSubject;
 
 /**
  * Created by liuyedong on 15-3-19.
@@ -40,7 +41,7 @@ public class GitHubSource implements GitSource {
     }
 
     @Override
-    public Observable<List<? extends Repository>> getRepositories(Activity activity, final int page, final int pageSize) {
+    public Observable<List<? extends Repository>> getRepositories(Activity activity, PublishSubject<?> nextPageTrigger) {
         return tokenInterceptor.withToken(activity, api.listRepositories())
                 .map(new Func1<List<GitHubRepository>, List<? extends Repository>>() {
                     @Override

@@ -4,8 +4,6 @@ import android.app.Activity;
 
 import rx.Observable;
 import rx.functions.Action1;
-import rx.functions.Func1;
-import rx.internal.util.UtilityFunctions;
 import rx.subjects.AsyncSubject;
 
 /**
@@ -48,19 +46,5 @@ public class AuthTokenProvider {
                     .subscribe(authTokenRequest);
         }
         return authTokenRequest;
-    }
-
-    /**
-     * 准备 authToken, 妥当后 onCompleted, 失败时 onError。
-     */
-    protected <T> Observable<T> prepareAuthToken(Activity activity) {
-        return provideAuthToken(activity)
-                .ignoreElements()
-                // 为了让编译器通过
-                .map(AuthTokenProvider.<T>toNull());
-    }
-
-    private static <T> Func1<String, T> toNull() {
-        return UtilityFunctions.returnNull();
     }
 }

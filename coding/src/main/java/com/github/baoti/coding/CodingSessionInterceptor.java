@@ -5,6 +5,7 @@ import android.app.Activity;
 import com.github.baoti.coding.api.CodingResponse;
 import com.github.baoti.git.accounts.AccountUtils;
 import com.github.baoti.git.accounts.AuthTokenProvider;
+import com.github.baoti.git.util.RxUtils;
 
 import java.net.HttpCookie;
 import java.util.List;
@@ -36,7 +37,7 @@ public class CodingSessionInterceptor extends AuthTokenProvider implements Reque
     }
 
     public <T> Observable<T> withSession(Activity activity, Observable<T> request) {
-        return this.<T>prepareAuthToken(activity).concatWith(request);
+        return RxUtils.afterDo(provideAuthToken(activity), request);
     }
 
     public static String fetchSessionId(Response response) throws NoSessionException {

@@ -23,6 +23,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import rx.Observer;
+import rx.subjects.PublishSubject;
 import rx.subscriptions.CompositeSubscription;
 import timber.log.Timber;
 
@@ -46,6 +47,8 @@ public class MainActivity extends ActionBarActivity
     GitSource[] gitSources;
 
     final CompositeSubscription subscriptions = new CompositeSubscription();
+
+    private PublishSubject<?> nextPageTrigger = PublishSubject.create();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,7 +87,7 @@ public class MainActivity extends ActionBarActivity
         if (position >= 0 && position < gitSources.length) {
             mTitle = gitSources[position].toString();
             subscriptions.add(
-                    bindActivity(this, gitSources[position].getRepositories(this, 1, 30))
+                    bindActivity(this, gitSources[position].getRepositories(this, nextPageTrigger))
                     .subscribe(new Observer<List<? extends Repository>>() {
                         @Override
                         public void onCompleted() {
@@ -93,7 +96,7 @@ public class MainActivity extends ActionBarActivity
 
                         @Override
                         public void onError(Throwable e) {
-                            Timber.v(e, "repo");
+                            Timber.v(e, "repo failed");
                         }
 
                         @Override
@@ -134,6 +137,7 @@ public class MainActivity extends ActionBarActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            nextPageTrigger.onNext(null);
             return true;
         }
 
