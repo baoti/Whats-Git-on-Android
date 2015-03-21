@@ -50,7 +50,7 @@ public class AccountAuthenticatorActivity extends FragmentActivity {
                                       String accountType) {
         return new Intent(context, AccountAuthenticatorActivity.class)
                 .putExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response)
-                .putExtra(EXTRA_FRAGMENT_CLASS, fragmentClass)
+                .putExtra(EXTRA_FRAGMENT_CLASS, fragmentClass.getCanonicalName())
                 .putExtra(AccountManager.KEY_ACCOUNT_TYPE, accountType);
     }
 
@@ -84,17 +84,12 @@ public class AccountAuthenticatorActivity extends FragmentActivity {
         }
 
         if (icicle == null) {
-            //noinspection unchecked
-            Class<Fragment> fragmentClass = (Class<Fragment>) getIntent().getSerializableExtra(EXTRA_FRAGMENT_CLASS);
+            String fragmentClass = getIntent().getStringExtra(EXTRA_FRAGMENT_CLASS);
             getSupportFragmentManager().beginTransaction()
                     .setTransition(FragmentTransaction.TRANSIT_NONE)
-                    .add(android.R.id.content, createFragment(fragmentClass))
+                    .add(android.R.id.content, Fragment.instantiate(this, fragmentClass))
                     .commit();
         }
-    }
-
-    private Fragment createFragment(Class<Fragment> fragmentClass) {
-        return Fragment.instantiate(this, fragmentClass.getCanonicalName());
     }
 
     /**

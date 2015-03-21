@@ -1,6 +1,7 @@
 <resources>
     <string name="github.title">GitHub</string>
     <string name="github.account_type" translatable="false">com.github.baoti.github</string>
+    <string name="github.account_type_label">GitHub on WhatsGit</string>
     <string name="github.email_hint">Email</string>
     <string name="github.password_hint">Password</string>
     <string name="github.invalid_email">Email 格式不正确</string>

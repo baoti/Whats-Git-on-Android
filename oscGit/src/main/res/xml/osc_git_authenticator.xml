@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <account-authenticator xmlns:android="http://schemas.android.com/apk/res/android"
     android:accountType="@string/osc_git.account_type"
-    android:label="@string/osc_git.title"
+    android:label="@string/osc_git.account_type_label"
     android:icon="@mipmap/ic_osc_git"
     android:smallIcon="@mipmap/ic_osc_git"/>

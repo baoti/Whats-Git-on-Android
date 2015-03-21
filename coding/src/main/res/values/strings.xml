@@ -1,6 +1,7 @@
 <resources>
     <string name="coding.title">Coding</string>
     <string name="coding.account_type" translatable="false">com.github.baoti.coding</string>
+    <string name="coding.account_type_label">Coding on WhatsGit</string>
     <string name="coding.email_hint">Email or user key</string>
     <string name="coding.password_hint">Password</string>
     <string name="coding.captcha_hint">Captcha</string>
