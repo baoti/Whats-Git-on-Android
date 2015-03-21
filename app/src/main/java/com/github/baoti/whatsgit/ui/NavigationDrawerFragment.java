@@ -23,7 +23,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.github.baoti.git.GitSource;
-import com.github.baoti.whatsgit.AppMain;
+import com.github.baoti.git.Platform;
 import com.github.baoti.whatsgit.R;
 
 import javax.inject.Inject;
@@ -74,7 +74,7 @@ public class NavigationDrawerFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        AppMain.app().inject(this);
+        Platform.inject(this);
 
         // Read in the flag indicating whether or not the user has demonstrated awareness of the
         // drawer. See PREF_USER_LEARNED_DRAWER for details.

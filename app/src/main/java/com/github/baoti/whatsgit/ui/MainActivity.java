@@ -14,8 +14,8 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.github.baoti.git.GitSource;
+import com.github.baoti.git.Platform;
 import com.github.baoti.git.Repository;
-import com.github.baoti.whatsgit.AppMain;
 import com.github.baoti.whatsgit.R;
 
 import java.util.List;
@@ -55,7 +55,7 @@ public class MainActivity extends ActionBarActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        AppMain.app().inject(this);
+        Platform.inject(this);
 
         mNavigationDrawerFragment = (NavigationDrawerFragment)
                 getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);

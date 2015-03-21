@@ -63,7 +63,7 @@ CLIENT_SECRET=Your Client Secret
 <https://github.com/settings/applications/>
 
 
-2. 如果你不需要 github 模块, 可以 从 app 模块的 `AppMainModule` 的 `includes` 中删除 `GitHubModule.class`,
+2. 如果你不需要 github 模块, 可以 从 app 模块的 `AppMain` 的 `Platform.initialize` 中删除 `GitHubModule.class`,
 并注释掉 app/build.gradle 文件中的 依赖:
 
 ```
