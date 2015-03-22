@@ -5,7 +5,7 @@ Whats Git on Android
 
 一个 **烧脑** 的开源Android项目.
 
-一个采用 Reactive（反应型/响应式） 模式开发的 Android 应用。
+一个采用 **Reactive（响应式编程）** 模式开发的 Android 应用。
 
 
 Source
@@ -34,7 +34,7 @@ Source
 
 已使用的烧脑库有:
 
-- Dagger by Square: 依赖管理, 特点: 基于模块声明与注解. 烧脑指数 **???**
+- Dagger by Square: 依赖管理, 特点: 基于模块声明与注解. 烧脑指数 **??**
 - RxJava by ReactiveX: Java响应式扩展, 特点: 函数式. 烧脑指数 **????**
 
 
@@ -47,34 +47,34 @@ Source
 GitHub
 ------
 
-1. 使用 github 模块要求在 github/ 目录下添加 github-client.properties 文件:
+-   使用 github 模块要求在 github/ 目录下添加 github-client.properties 文件:
 
-内容为:
+    内容为:
 
-```
-CLIENT_ID=Your Client ID
-CLIENT_SECRET=Your Client Secret
-```
+    ```
+    CLIENT_ID=Your Client ID
+    CLIENT_SECRET=Your Client Secret
+    ```
 
-这两项要求你使用 github 账号创建应用, GitHub 为你提供 Client ID 和 Client Secret.
+    这两项要求你使用 github 账号创建应用, GitHub 为你提供 Client ID 和 Client Secret.
 
-以下是操作页面:
+    以下是操作页面:
 
-<https://github.com/settings/applications/>
+    <https://github.com/settings/applications/>
 
 
-2. 如果你不需要 github 模块, 可以 从 app 模块的 `AppMain` 的 `Platform.initialize` 中删除 `GitHubModule.class`,
-并注释掉 app/build.gradle 文件中的 依赖:
+-   如果你不需要 github 模块, 可以 从 app 模块的 `AppMain` 的 `Platform.initialize` 中删除 `GitHubModule.class`,
+    并注释掉 app/build.gradle 文件中的 依赖:
 
-```
-dependencies {
-    compile project(":git")
-    compile project(":coding")
-    compile project(":oscGit")
-//    compile project(":github")
-```
+    ```
+    dependencies {
+        compile project(":git")
+        compile project(":coding")
+        compile project(":oscGit")
+    //    compile project(":github")
+    ```
 
-3. GitHub 数据的加载更多暂不支持。待 Retrofit 2.0 出来之后再作支持。
+-   GitHub 数据的加载更多暂不支持。待 Retrofit 2.0 出来之后再作支持。
 
 
 Pull Requests

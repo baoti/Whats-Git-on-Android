@@ -42,18 +42,31 @@ import android.support.v4.app.FragmentTransaction;
  * will be called on the response.
  */
 public class AccountAuthenticatorActivity extends FragmentActivity {
-    private static final String EXTRA_FRAGMENT_CLASS = "app:fragmentAuthenticatorClass";
 
-    public static Intent authenticate(Context context,
-                                      AccountAuthenticatorResponse response,
-                                      Class<? extends Fragment> fragmentClass,
-                                      String accountType) {
+    public static final String EXTRA_ACCOUNT_TYPE = AccountManager.KEY_ACCOUNT_TYPE;
+    public static final String EXTRA_AUTH_TOKEN_TYPE = "app:authTokenType";
+    public static final String EXTRA_ACCOUNT_NAME = AccountManager.KEY_ACCOUNT_NAME;
+
+    private static final String EXTRA_FRAGMENT_CLASS = "app:contentFragment";
+
+    public static Intent buildIntent(Context context,
+                                     AccountAuthenticatorResponse response,
+                                     String accountType,
+                                     String authTokenType) {
         return new Intent(context, AccountAuthenticatorActivity.class)
                 .putExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response)
-                .putExtra(EXTRA_FRAGMENT_CLASS, fragmentClass.getCanonicalName())
-                .putExtra(AccountManager.KEY_ACCOUNT_TYPE, accountType);
+                .putExtra(EXTRA_ACCOUNT_TYPE, accountType)
+                .putExtra(EXTRA_AUTH_TOKEN_TYPE, authTokenType);
     }
 
+    public static Intent putAccountName(Intent intent, String accountName) {
+        return intent.putExtra(EXTRA_ACCOUNT_NAME, accountName);
+    }
+
+    public static Intent putAuthenticateFragment(Intent intent,
+                                      Class<? extends Fragment> fragmentClass) {
+        return intent.putExtra(EXTRA_FRAGMENT_CLASS, fragmentClass.getCanonicalName());
+    }
 
     private AccountAuthenticatorResponse mAccountAuthenticatorResponse = null;
     private Bundle mResultBundle = null;
