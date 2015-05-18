@@ -26,7 +26,7 @@ import retrofit.RestAdapter;
 import retrofit.client.Response;
 import rx.Observer;
 import rx.Subscription;
-import rx.exceptions.OnErrorFailedException;
+import rx.exceptions.OnErrorThrowable;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import timber.log.Timber;
@@ -117,7 +117,7 @@ public class LoginFragment extends Fragment {
                         try {
                             return CodingSessionInterceptor.fetchSessionId(response);
                         } catch (CodingSessionInterceptor.NoSessionException e) {
-                            throw new OnErrorFailedException(e);
+                            throw OnErrorThrowable.from(e);
                         }
                     }
                 })
