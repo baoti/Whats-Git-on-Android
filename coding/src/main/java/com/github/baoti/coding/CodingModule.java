@@ -12,10 +12,7 @@ import dagger.Provides;
 /**
  * Created by liuyedong on 15-3-19.
  */
-@Module(
-        library = true,
-        complete = false
-)
+@Module
 public class CodingModule {
 
     @Singleton
