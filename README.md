@@ -34,7 +34,7 @@ Source
 
 已使用的烧脑库有:
 
-- Dagger by Square: 依赖管理, 特点: 基于模块声明与注解. 烧脑指数 **??**
+- Dagger2 by Google: 依赖管理, 特点: 基于组件、模块声明与注解. 烧脑指数 **??**
 - RxJava by ReactiveX: Java响应式扩展, 特点: 函数式. 烧脑指数 **????**
 
 
@@ -63,7 +63,7 @@ GitHub
     <https://github.com/settings/applications/>
 
 
--   如果你不需要 github 模块, 可以 从 app 模块的 `AppMain` 的 `Platform.initialize` 中删除 `GitHubModule.class`,
+-   如果你不需要 github 模块, 可以 从 app 模块的 `AppComponent` 的 `modules` 中删除 `GitHubModule.class`,
     并注释掉 app/build.gradle 文件中的 依赖:
 
     ```
