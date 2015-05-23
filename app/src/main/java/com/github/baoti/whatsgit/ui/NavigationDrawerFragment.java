@@ -26,8 +26,6 @@ import com.github.baoti.git.GitSource;
 import com.github.baoti.git.Platform;
 import com.github.baoti.whatsgit.R;
 
-import javax.inject.Inject;
-
 /**
  * Fragment used for managing interactions for and presentation of a navigation drawer.
  * See the <a href="https://developer.android.com/design/patterns/navigation-drawer.html#Interaction">
@@ -64,7 +62,6 @@ public class NavigationDrawerFragment extends Fragment {
     private boolean mFromSavedInstanceState;
     private boolean mUserLearnedDrawer;
 
-    @Inject
     GitSource[] gitSources;
 
     public NavigationDrawerFragment() {
@@ -74,7 +71,7 @@ public class NavigationDrawerFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Platform.inject(this);
+        gitSources = Platform.component().gitSources();
 
         // Read in the flag indicating whether or not the user has demonstrated awareness of the
         // drawer. See PREF_USER_LEARNED_DRAWER for details.

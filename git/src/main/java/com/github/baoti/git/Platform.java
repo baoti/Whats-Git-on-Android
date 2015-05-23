@@ -4,30 +4,25 @@ import android.accounts.AccountManager;
 import android.app.Application;
 import android.provider.Settings;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 import javax.inject.Singleton;
 
-import dagger.ObjectGraph;
 import dagger.Provides;
 import timber.log.Timber;
 
-@dagger.Module(library = true)
 public class Platform {
 
     private static Platform platform;
 
-    public static void initialize(Application app, Object... modules) {
+    public static void initialize(Component component) {
         if (platform != null) {
             throw new IllegalStateException("has initialized");
         }
-        platform = new Platform(app, modules);
+        platform = new Platform(component);
 
         if (BuildConfig.DEBUG) {
-            platform.graph.validate(); // validate dagger's object graph
             Timber.plant(new Timber.DebugTree());
         }
     }
@@ -39,55 +34,65 @@ public class Platform {
         return platform;
     }
 
-    private final Application application;
+    private final Component component;
 
-    private final ObjectGraph graph;
+    private Platform(Component component) {
+        this.component = component;
+    }
 
-    private Platform(Application app, Object... modules) {
-        this.application = app;
-        ArrayList<Object> allModules = new ArrayList<>();
-        allModules.add(this);
-        Collections.addAll(allModules, modules);
-        this.graph = ObjectGraph.create(allModules.toArray());
+    public static Component component() {
+        return instance().component;
     }
 
     public static Application app() {
-        return instance().application;
-    }
-
-    public static void inject(Object object) {
-        instance().graph.inject(object);
-    }
-
-    public static ObjectGraph globalGraph() {
-        return instance().graph;
+        return component().app();
     }
 
     public static String getAndroidUserId() {
         return Settings.System.getString(
-                instance().application.getContentResolver(),
+                app().getContentResolver(),
                 Settings.Secure.ANDROID_ID);
     }
 
-    @Provides
-    Application providesApplication() {
-        return application;
+    @dagger.Module
+    public static class Module {
+        private final Application application;
+
+        public Module(Application application) {
+            this.application = application;
+        }
+
+        @Provides
+        Application providesApplication() {
+            return application;
+        }
+
+        @Singleton
+        @Provides
+        AccountManager providesAccountManager() {
+            return AccountManager.get(application);
+        }
+
+        @Provides(type = Provides.Type.SET_VALUES)
+        Set<GitSource> providesGitSourceSet() {
+            return new HashSet<>();
+        }
+
+        @Singleton
+        @Provides
+        GitSource[] providesGitSources(Set<GitSource> gitSources) {
+            return gitSources.toArray(new GitSource[gitSources.size()]);
+        }
     }
 
-    @Singleton
-    @Provides
-    AccountManager providesAccountManager() {
-        return AccountManager.get(application);
-    }
+//    @Singleton
+//    @dagger.Component(modules = Module.class)
+    public interface Component {
 
-    @Provides(type = Provides.Type.SET_VALUES)
-    Set<GitSource> providesGitSources() {
-        return new HashSet<>();
-    }
+        Application app();
 
-    @Singleton
-    @Provides
-    GitSource[] providesGitSources(Set<GitSource> gitSources) {
-        return gitSources.toArray(new GitSource[gitSources.size()]);
+        AccountManager accountManager();
+
+        GitSource[] gitSources();
     }
 }

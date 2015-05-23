@@ -20,8 +20,6 @@ import com.github.baoti.whatsgit.R;
 
 import java.util.List;
 
-import javax.inject.Inject;
-
 import rx.Observer;
 import rx.subjects.PublishSubject;
 import rx.subscriptions.CompositeSubscription;
@@ -43,7 +41,6 @@ public class MainActivity extends ActionBarActivity
      */
     private CharSequence mTitle;
 
-    @Inject
     GitSource[] gitSources;
 
     final CompositeSubscription subscriptions = new CompositeSubscription();
@@ -55,7 +52,7 @@ public class MainActivity extends ActionBarActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Platform.inject(this);
+        gitSources = Platform.component().gitSources();
 
         mNavigationDrawerFragment = (NavigationDrawerFragment)
                 getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
