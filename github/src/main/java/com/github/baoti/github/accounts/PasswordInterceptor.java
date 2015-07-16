@@ -1,10 +1,14 @@
 package com.github.baoti.github.accounts;
 
-import retrofit.RequestInterceptor;
+import com.squareup.okhttp.Interceptor;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.Response;
+
+import java.io.IOException;
 
 import static com.github.baoti.git.util.Texts.basicAuthorization;
 
-class PasswordInterceptor implements RequestInterceptor {
+class PasswordInterceptor implements Interceptor {
     private String username;
     private String password;
 
@@ -14,10 +18,13 @@ class PasswordInterceptor implements RequestInterceptor {
     }
 
     @Override
-    public void intercept(RequestFacade request) {
-        request.addHeader("User-Agent", "Whats-Git-on-Android");
-        request.addHeader("Accept", "application/vnd.github.v3+json");
-
-        request.addHeader("Authorization", basicAuthorization(username, password));
+    public Response intercept(Chain chain) throws IOException {
+        Request request = chain.request();
+        request = request.newBuilder()
+                .addHeader("User-Agent", "Whats-Git-on-Android")
+                .addHeader("Accept", "application/vnd.github.v3+json")
+                .addHeader("Authorization", basicAuthorization(username, password))
+                .build();
+        return chain.proceed(request);
     }
 }

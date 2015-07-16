@@ -23,7 +23,9 @@ import com.github.baoti.osc.git.R;
 import com.github.baoti.osc.git.api.OscGitApi;
 import com.github.baoti.osc.git.api.OscGitSession;
 
-import retrofit.RestAdapter;
+import retrofit.GsonConverterFactory;
+import retrofit.ObservableCallAdapterFactory;
+import retrofit.Retrofit;
 import rx.Observer;
 import rx.Subscription;
 import rx.functions.Action1;
@@ -57,8 +59,10 @@ public class LoginFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         accountType = getString(OscGitConstants.ACCOUNT_TYPE_RES);
-        api = new RestAdapter.Builder()
-                .setEndpoint(OscGitApi.API_URL)
+        api = new Retrofit.Builder()
+                .baseUrl(OscGitApi.API_URL)
+                .callAdapterFactory(ObservableCallAdapterFactory.create())
+                .converterFactory(GsonConverterFactory.create())
                 .build().create(OscGitApi.class);
         accountUtils = new AccountUtils(AccountManager.get(getActivity()));
     }

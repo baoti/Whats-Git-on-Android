@@ -6,20 +6,21 @@ import com.github.baoti.coding.api.CodingResponse;
 import com.github.baoti.git.accounts.AccountUtils;
 import com.github.baoti.git.accounts.AuthTokenProvider;
 import com.github.baoti.git.util.RxUtils;
+import com.squareup.okhttp.Interceptor;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.Response;
 
+import java.io.IOException;
 import java.net.HttpCookie;
 import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import retrofit.RequestInterceptor;
-import retrofit.client.Header;
-import retrofit.client.Response;
 import rx.Observable;
 
 @Singleton
-public class CodingSessionInterceptor extends AuthTokenProvider implements RequestInterceptor {
+public class CodingSessionInterceptor extends AuthTokenProvider implements Interceptor {
 
     private static final String KEY_SESSION = "sid";
 
@@ -29,27 +30,28 @@ public class CodingSessionInterceptor extends AuthTokenProvider implements Reque
     }
 
     @Override
-    public void intercept(RequestFacade request) {
+    public Response intercept(Chain chain) throws IOException {
+        Request request = chain.request();
         String sessionId = getAuthToken();
         if (sessionId != null) {
-            request.addHeader("Cookie", KEY_SESSION + "=" + sessionId);
+            request = request.newBuilder()
+                    .addHeader("Cookie", KEY_SESSION + "=" + sessionId)
+                    .build();
         }
+        return chain.proceed(request);
     }
 
     public <T> Observable<T> withSession(Activity activity, Observable<T> request) {
         return RxUtils.afterDo(provideAuthToken(activity), request);
     }
 
-    public static String fetchSessionId(Response response) throws NoSessionException {
+    public static String fetchSessionId(retrofit.Response<CodingResponse<CodingUser>> response) throws NoSessionException {
         if (!CodingResponse.isSuccessful(response)) {
             throw new NoSessionException("No successful response");
         }
-        List<Header> headers = response.getHeaders();
-        for (Header header : headers) {
-            if (header.getName().startsWith("Set-Cookie")) {
-                return fetchSessionId(HttpCookie.parse(
-                        header.getName() + ": " + header.getValue()));
-            }
+        String cookie = response.headers().get("Set-Cookie");
+        if (cookie != null) {
+            return fetchSessionId(HttpCookie.parse("Set-Cookie: " + cookie));
         }
         throw new NoSessionException("No Set-Cookie header");
     }

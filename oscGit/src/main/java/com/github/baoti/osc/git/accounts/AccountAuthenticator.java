@@ -9,8 +9,9 @@ import com.github.baoti.git.accounts.BaseAccountAuthenticator;
 import com.github.baoti.osc.git.api.OscGitApi;
 import com.github.baoti.osc.git.api.OscGitSession;
 
-import retrofit.RestAdapter;
-import retrofit.RetrofitError;
+import retrofit.GsonConverterFactory;
+import retrofit.ObservableCallAdapterFactory;
+import retrofit.Retrofit;
 
 /**
  * Created by liuyedong on 15-1-19.
@@ -20,8 +21,10 @@ class AccountAuthenticator extends BaseAccountAuthenticator {
 
     public AccountAuthenticator(Context context) {
         super(context);
-        this.api = new RestAdapter.Builder()
-                .setEndpoint(OscGitApi.API_URL)
+        this.api = new Retrofit.Builder()
+                .baseUrl(OscGitApi.API_URL)
+                .callAdapterFactory(ObservableCallAdapterFactory.create())
+                .converterFactory(GsonConverterFactory.create())
                 .build()
                 .create(OscGitApi.class);
     }
@@ -31,7 +34,7 @@ class AccountAuthenticator extends BaseAccountAuthenticator {
         OscGitSession session;
         try {
             session = api.login(accountName, password).toBlocking().first();
-        } catch (RetrofitError error) {
+        } catch (Throwable error) {
             throw new NetworkErrorException(error);
         }
         return session.private_token;

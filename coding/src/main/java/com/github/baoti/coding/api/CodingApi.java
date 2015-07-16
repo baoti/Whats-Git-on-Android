@@ -3,7 +3,7 @@ package com.github.baoti.coding.api;
 import com.github.baoti.coding.CodingProject;
 import com.github.baoti.coding.CodingUser;
 
-import retrofit.client.Response;
+import retrofit.Response;
 import retrofit.http.Field;
 import retrofit.http.FormUrlEncoded;
 import retrofit.http.GET;
@@ -20,7 +20,7 @@ public interface CodingApi {
     // CodingResponse<CodingUser>
     @FormUrlEncoded
     @POST("/login")
-    Observable<Response> login(
+    Observable<Response<CodingResponse<CodingUser>>> login(
             @Field("email") String emailOrUserKey,
             @Field("password") String password,
             @Field("j_captcha") String captcha

@@ -17,13 +17,17 @@ import android.widget.Toast;
 
 import com.github.baoti.coding.CodingConstants;
 import com.github.baoti.coding.CodingSessionInterceptor;
+import com.github.baoti.coding.CodingUser;
 import com.github.baoti.coding.R;
 import com.github.baoti.coding.api.CodingApi;
+import com.github.baoti.coding.api.CodingResponse;
 import com.github.baoti.git.accounts.AccountAuthenticatorActivity;
 import com.github.baoti.git.accounts.AccountUtils;
 
-import retrofit.RestAdapter;
-import retrofit.client.Response;
+import retrofit.GsonConverterFactory;
+import retrofit.ObservableCallAdapterFactory;
+import retrofit.Response;
+import retrofit.Retrofit;
 import rx.Observer;
 import rx.Subscription;
 import rx.exceptions.OnErrorThrowable;
@@ -61,9 +65,12 @@ public class LoginFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         accountType = getString(CodingConstants.ACCOUNT_TYPE_RES);
-        api = new RestAdapter.Builder()
-                .setEndpoint(CodingApi.API_URL)
-                .build().create(CodingApi.class);
+        api = new Retrofit.Builder()
+                .baseUrl(CodingApi.API_URL)
+                .callAdapterFactory(ObservableCallAdapterFactory.create())
+                .converterFactory(GsonConverterFactory.create())
+                .build()
+                .create(CodingApi.class);
         accountUtils = new AccountUtils(AccountManager.get(getActivity()));
     }
 
@@ -111,9 +118,9 @@ public class LoginFragment extends Fragment {
         String captchaText = TextUtils.isEmpty(captcha.getText()) ? null : captcha.getText().toString();
 
         loginSubscription = bindFragment(this, api.login(emailText, passwordSha1(passwordText), captchaText)
-                .map(new Func1<Response, String>() {
+                .map(new Func1<Response<CodingResponse<CodingUser>>, String>() {
                     @Override
-                    public String call(Response response) {
+                    public String call(Response<CodingResponse<CodingUser>> response) {
                         try {
                             return CodingSessionInterceptor.fetchSessionId(response);
                         } catch (CodingSessionInterceptor.NoSessionException e) {

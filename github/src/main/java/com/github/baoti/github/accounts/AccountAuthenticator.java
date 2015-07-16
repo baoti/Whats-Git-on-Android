@@ -8,9 +8,11 @@ import com.github.baoti.git.accounts.AccountAuthenticatorActivity;
 import com.github.baoti.git.accounts.BaseAccountAuthenticator;
 import com.github.baoti.github.api.GitHubApi;
 import com.github.baoti.github.api.TokenResponse;
+import com.squareup.okhttp.OkHttpClient;
 
-import retrofit.RestAdapter;
-import retrofit.RetrofitError;
+import retrofit.GsonConverterFactory;
+import retrofit.ObservableCallAdapterFactory;
+import retrofit.Retrofit;
 
 import static com.github.baoti.github.api.TokenRequest.authorize;
 
@@ -24,9 +26,13 @@ class AccountAuthenticator extends BaseAccountAuthenticator {
     public AccountAuthenticator(Context context) {
         super(context);
         passwordInterceptor = new PasswordInterceptor();
-        this.api = new RestAdapter.Builder()
-                .setEndpoint(GitHubApi.API_URL)
-                .setRequestInterceptor(passwordInterceptor)
+        OkHttpClient client = new OkHttpClient();
+        client.interceptors().add(passwordInterceptor);
+        this.api = new Retrofit.Builder()
+                .baseUrl(GitHubApi.API_URL)
+                .client(client)
+                .callAdapterFactory(ObservableCallAdapterFactory.create())
+                .converterFactory(GsonConverterFactory.create())
                 .build()
                 .create(GitHubApi.class);
     }
@@ -37,7 +43,7 @@ class AccountAuthenticator extends BaseAccountAuthenticator {
         try {
             TokenResponse session = authorize(api).toBlocking().first();
             return session.token;
-        } catch (RetrofitError error) {
+        } catch (Throwable error) {
             throw new NetworkErrorException(error);
         }
     }

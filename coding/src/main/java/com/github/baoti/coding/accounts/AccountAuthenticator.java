@@ -9,8 +9,9 @@ import com.github.baoti.coding.api.CodingApi;
 import com.github.baoti.git.accounts.AccountAuthenticatorActivity;
 import com.github.baoti.git.accounts.BaseAccountAuthenticator;
 
-import retrofit.RestAdapter;
-import retrofit.RetrofitError;
+import retrofit.GsonConverterFactory;
+import retrofit.ObservableCallAdapterFactory;
+import retrofit.Retrofit;
 
 import static com.github.baoti.coding.CodingUtils.passwordSha1;
 
@@ -22,8 +23,10 @@ class AccountAuthenticator extends BaseAccountAuthenticator {
 
     public AccountAuthenticator(Context context) {
         super(context);
-        this.api = new RestAdapter.Builder()
-                .setEndpoint(CodingApi.API_URL)
+        this.api = new Retrofit.Builder()
+                .baseUrl(CodingApi.API_URL)
+                .callAdapterFactory(ObservableCallAdapterFactory.create())
+                .converterFactory(GsonConverterFactory.create())
                 .build()
                 .create(CodingApi.class);
     }
@@ -33,10 +36,10 @@ class AccountAuthenticator extends BaseAccountAuthenticator {
         try {
             return CodingSessionInterceptor.fetchSessionId(
                     api.login(accountName, passwordSha1(password), null).toBlocking().first());
-        } catch (RetrofitError error) {
-            throw new NetworkErrorException(error);
         } catch (CodingSessionInterceptor.NoSessionException e) {
             return null;
+        } catch (RuntimeException error) {
+            throw new NetworkErrorException(error);
         }
     }
 

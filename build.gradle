@@ -15,6 +15,11 @@ buildscript {
 allprojects {
     repositories {
         jcenter()
+
+        // For Retrofit 2.0.0
+        maven {
+            url 'https://oss.sonatype.org/content/repositories/snapshots/'
+        }
     }
 
     ext {

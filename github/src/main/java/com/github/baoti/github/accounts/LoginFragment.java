@@ -22,8 +22,11 @@ import com.github.baoti.github.GitHubConstants;
 import com.github.baoti.github.R;
 import com.github.baoti.github.api.GitHubApi;
 import com.github.baoti.github.api.TokenResponse;
+import com.squareup.okhttp.OkHttpClient;
 
-import retrofit.RestAdapter;
+import retrofit.GsonConverterFactory;
+import retrofit.ObservableCallAdapterFactory;
+import retrofit.Retrofit;
 import rx.Observer;
 import rx.Subscription;
 import rx.functions.Action1;
@@ -60,9 +63,13 @@ public class LoginFragment extends Fragment {
         super.onCreate(savedInstanceState);
         accountType = getString(GitHubConstants.ACCOUNT_TYPE_RES);
         passwordInterceptor = new PasswordInterceptor();
-        api = new RestAdapter.Builder()
-                .setEndpoint(GitHubApi.API_URL)
-                .setRequestInterceptor(passwordInterceptor)
+        OkHttpClient client = new OkHttpClient();
+        client.interceptors().add(passwordInterceptor);
+        api = new Retrofit.Builder()
+                .baseUrl(GitHubApi.API_URL)
+                .client(client)
+                .callAdapterFactory(ObservableCallAdapterFactory.create())
+                .converterFactory(GsonConverterFactory.create())
                 .build()
                 .create(GitHubApi.class);
         accountUtils = new AccountUtils(AccountManager.get(getActivity()));

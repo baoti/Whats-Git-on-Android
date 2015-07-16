@@ -6,13 +6,16 @@ import com.github.baoti.git.GitSource;
 import com.github.baoti.git.Repository;
 import com.github.baoti.git.util.RxUtils;
 import com.github.baoti.osc.git.api.OscGitApi;
+import com.squareup.okhttp.OkHttpClient;
 
 import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import retrofit.RestAdapter;
+import retrofit.GsonConverterFactory;
+import retrofit.ObservableCallAdapterFactory;
+import retrofit.Retrofit;
 import rx.Observable;
 import rx.functions.Func1;
 import rx.subjects.PublishSubject;
@@ -29,9 +32,13 @@ public class OscGitSource implements GitSource {
     @Inject
     public OscGitSource(OscGitTokenInterceptor interceptor) {
         this.tokenInterceptor = interceptor;
-        api = new RestAdapter.Builder()
-                .setEndpoint(OscGitApi.API_URL)
-                .setRequestInterceptor(interceptor)
+        OkHttpClient client = new OkHttpClient();
+        client.interceptors().add(interceptor);
+        api = new Retrofit.Builder()
+                .baseUrl(OscGitApi.API_URL)
+                .client(client)
+                .callAdapterFactory(ObservableCallAdapterFactory.create())
+                .converterFactory(GsonConverterFactory.create())
                 .build()
                 .create(OscGitApi.class);
     }
