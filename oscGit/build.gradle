@@ -1,14 +1,13 @@
 apply plugin: 'com.android.library'
 
 android {
+    resourcePrefix 'osc_git_'
     compileSdkVersion androidCompileSdkVersion
     buildToolsVersion androidBuildToolsVersion
 
     defaultConfig {
         minSdkVersion 9
         targetSdkVersion androidTargetSdkVersion
-        versionCode 1
-        versionName "1.0"
     }
 }
 

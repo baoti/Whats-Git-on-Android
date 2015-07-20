@@ -9,14 +9,13 @@ if (localPropsFile.exists()) {
 }
 
 android {
+    resourcePrefix 'github_'
     compileSdkVersion androidCompileSdkVersion
     buildToolsVersion androidBuildToolsVersion
 
     defaultConfig {
         minSdkVersion 9
         targetSdkVersion androidTargetSdkVersion
-        versionCode 1
-        versionName "1.0"
 
         buildConfigField "String", "GITHUB_CLIENT_ID", '"' + props['CLIENT_ID'] + '"'
         buildConfigField "String", "GITHUB_CLIENT_SECRET", '"' + props['CLIENT_SECRET'] + '"'
