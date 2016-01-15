@@ -4,35 +4,42 @@ import android.accounts.NetworkErrorException;
 import android.content.Context;
 import android.content.Intent;
 
+import com.github.baoti.git.Platform;
 import com.github.baoti.git.accounts.AccountAuthenticatorActivity;
 import com.github.baoti.git.accounts.BaseAccountAuthenticator;
 import com.github.baoti.github.api.GitHubApi;
 import com.github.baoti.github.api.TokenResponse;
-import com.squareup.okhttp.OkHttpClient;
 
-import retrofit.GsonConverterFactory;
-import retrofit.ObservableCallAdapterFactory;
-import retrofit.Retrofit;
+import javax.inject.Inject;
+
+import okhttp3.OkHttpClient;
+import retrofit2.GsonConverterFactory;
+import retrofit2.Retrofit;
+import retrofit2.RxJavaCallAdapterFactory;
 
 import static com.github.baoti.github.api.TokenRequest.authorize;
 
 /**
  * Created by liuyedong on 15-1-19.
  */
-class AccountAuthenticator extends BaseAccountAuthenticator {
+public class AccountAuthenticator extends BaseAccountAuthenticator {
+    @Inject
+    OkHttpClient httpClient;
     private final GitHubApi api;
     private final PasswordInterceptor passwordInterceptor;
 
     public AccountAuthenticator(Context context) {
         super(context);
+        Platform.inject(this);
         passwordInterceptor = new PasswordInterceptor();
-        OkHttpClient client = new OkHttpClient();
-        client.interceptors().add(passwordInterceptor);
+        OkHttpClient client = httpClient.newBuilder()
+                .addInterceptor(passwordInterceptor)
+                .build();
         this.api = new Retrofit.Builder()
                 .baseUrl(GitHubApi.API_URL)
                 .client(client)
-                .callAdapterFactory(ObservableCallAdapterFactory.create())
-                .converterFactory(GsonConverterFactory.create())
+                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+                .addConverterFactory(GsonConverterFactory.create())
                 .build()
                 .create(GitHubApi.class);
     }

@@ -5,7 +5,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:1.2.3'
+        classpath 'com.android.tools.build:gradle:1.5.0'
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -23,8 +23,16 @@ allprojects {
     }
 
     ext {
-        androidBuildToolsVersion = "22.0.1"
-        androidCompileSdkVersion = 21
-        androidTargetSdkVersion = 21
+        androidBuildToolsVersion = "23.0.2"
+        androidCompileSdkVersion = 23
+        androidSupportLibVersion = '23.1.1'
+        androidTargetSdkVersion = 23
+
+        daggerLib = 'com.squareup.dagger:dagger:1.2.2'
+        daggerCompilerLib = 'com.squareup.dagger:dagger-compiler:1.2.2'
+
+        retrofit2Lib = 'com.squareup.retrofit2:retrofit:2.0.0-SNAPSHOT'
+        retrofit2RxjavaAdapterLib = 'com.squareup.retrofit2:adapter-rxjava:2.0.0-SNAPSHOT'
+        retrofit2GsonConverterLib = 'com.squareup.retrofit2:converter-gson:2.0.0-SNAPSHOT'
     }
 }

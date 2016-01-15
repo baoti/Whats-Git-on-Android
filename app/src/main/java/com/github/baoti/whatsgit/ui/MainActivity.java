@@ -27,8 +27,6 @@ import rx.subjects.PublishSubject;
 import rx.subscriptions.CompositeSubscription;
 import timber.log.Timber;
 
-import static rx.android.app.AppObservable.bindActivity;
-
 
 public class MainActivity extends ActionBarActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
@@ -87,7 +85,7 @@ public class MainActivity extends ActionBarActivity
         if (position >= 0 && position < gitSources.length) {
             mTitle = gitSources[position].toString();
             subscriptions.add(
-                    bindActivity(this, gitSources[position].getRepositories(this, nextPageTrigger))
+                    gitSources[position].getRepositories(this, nextPageTrigger)
                     .subscribe(new Observer<List<? extends Repository>>() {
                         @Override
                         public void onCompleted() {

@@ -2,6 +2,8 @@ package com.github.baoti.coding;
 
 import android.app.Application;
 
+import com.github.baoti.coding.accounts.AccountAuthenticator;
+import com.github.baoti.coding.accounts.LoginFragment;
 import com.github.baoti.git.GitSource;
 
 import javax.inject.Singleton;
@@ -14,7 +16,11 @@ import dagger.Provides;
  */
 @Module(
         library = true,
-        complete = false
+        complete = false,
+        injects = {
+                AccountAuthenticator.class,
+                LoginFragment.class
+        }
 )
 public class CodingModule {
 

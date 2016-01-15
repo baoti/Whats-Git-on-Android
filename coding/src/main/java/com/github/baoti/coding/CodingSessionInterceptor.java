@@ -1,14 +1,12 @@
 package com.github.baoti.coding;
 
 import android.app.Activity;
+import android.text.TextUtils;
 
 import com.github.baoti.coding.api.CodingResponse;
 import com.github.baoti.git.accounts.AccountUtils;
 import com.github.baoti.git.accounts.AuthTokenProvider;
 import com.github.baoti.git.util.RxUtils;
-import com.squareup.okhttp.Interceptor;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.Response;
 
 import java.io.IOException;
 import java.net.HttpCookie;
@@ -17,6 +15,9 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import okhttp3.Interceptor;
+import okhttp3.Request;
+import okhttp3.Response;
 import rx.Observable;
 
 @Singleton
@@ -45,8 +46,13 @@ public class CodingSessionInterceptor extends AuthTokenProvider implements Inter
         return RxUtils.afterDo(provideAuthToken(activity), request);
     }
 
-    public static String fetchSessionId(retrofit.Response<CodingResponse<CodingUser>> response) throws NoSessionException {
+    public static String fetchSessionId(retrofit2.Response<CodingResponse<CodingUser>> response) throws NoSessionException {
         if (!CodingResponse.isSuccessful(response)) {
+            if (response.body() != null
+                    && response.body().msg != null
+                    && !response.body().msg.isEmpty()) {
+                throw new NoSessionException(TextUtils.join(",", response.body().msg.values()));
+            }
             throw new NoSessionException("No successful response");
         }
         String cookie = response.headers().get("Set-Cookie");

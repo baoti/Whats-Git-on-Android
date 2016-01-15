@@ -15,6 +15,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.github.baoti.git.Platform;
 import com.github.baoti.git.accounts.AccountAuthenticatorActivity;
 import com.github.baoti.git.accounts.AccountUtils;
 import com.github.baoti.git.util.Contracts;
@@ -23,25 +24,32 @@ import com.github.baoti.osc.git.R;
 import com.github.baoti.osc.git.api.OscGitApi;
 import com.github.baoti.osc.git.api.OscGitSession;
 
-import retrofit.GsonConverterFactory;
-import retrofit.ObservableCallAdapterFactory;
-import retrofit.Retrofit;
+import javax.inject.Inject;
+
+import okhttp3.OkHttpClient;
+import retrofit2.GsonConverterFactory;
+import retrofit2.Retrofit;
+import retrofit2.RxJavaCallAdapterFactory;
 import rx.Observer;
 import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.functions.Func1;
+import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
 import static android.accounts.AccountManager.KEY_ACCOUNT_NAME;
 import static android.accounts.AccountManager.KEY_ACCOUNT_TYPE;
 import static android.accounts.AccountManager.KEY_AUTHTOKEN;
 import static butterknife.ButterKnife.findById;
-import static rx.android.app.AppObservable.bindFragment;
 
 /**
  * Created by liuyedong on 15-3-19.
  */
 public class LoginFragment extends Fragment {
+
+    @Inject
+    OkHttpClient httpClient;
 
     EditText email;
 
@@ -58,11 +66,13 @@ public class LoginFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Platform.inject(this);
         accountType = getString(OscGitConstants.ACCOUNT_TYPE_RES);
         api = new Retrofit.Builder()
                 .baseUrl(OscGitApi.API_URL)
-                .callAdapterFactory(ObservableCallAdapterFactory.create())
-                .converterFactory(GsonConverterFactory.create())
+                .client(httpClient)
+                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+                .addConverterFactory(GsonConverterFactory.create())
                 .build().create(OscGitApi.class);
         accountUtils = new AccountUtils(AccountManager.get(getActivity()));
     }
@@ -108,7 +118,11 @@ public class LoginFragment extends Fragment {
         final String emailText = email.getText().toString();
         final String passwordText = password.getText().toString();
 
-        loginSubscription = bindFragment(this, api.login(emailText, passwordText)
+        if (loginSubscription != null) {
+            loginSubscription.unsubscribe();
+        }
+        loginSubscription = api.login(emailText, passwordText)
+                .subscribeOn(Schedulers.io())
                 .map(new Func1<OscGitSession, String>() {
                     @Override
                     public String call(OscGitSession oscGitSession) {
@@ -123,7 +137,8 @@ public class LoginFragment extends Fragment {
                         accountUtils.saveAuthToken(account,
                                 OscGitConstants.AUTH_TOKEN_TYPE, s);
                     }
-                }))
+                })
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Observer<String>() {
                     @Override
                     public void onCompleted() {

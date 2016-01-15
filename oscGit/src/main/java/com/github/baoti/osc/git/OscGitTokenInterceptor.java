@@ -5,15 +5,15 @@ import android.app.Activity;
 import com.github.baoti.git.accounts.AccountUtils;
 import com.github.baoti.git.accounts.AuthTokenProvider;
 import com.github.baoti.git.util.RxUtils;
-import com.squareup.okhttp.HttpUrl;
-import com.squareup.okhttp.Interceptor;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.Response;
 
 import java.io.IOException;
 
 import javax.inject.Inject;
 
+import okhttp3.HttpUrl;
+import okhttp3.Interceptor;
+import okhttp3.Request;
+import okhttp3.Response;
 import rx.Observable;
 
 public class OscGitTokenInterceptor extends AuthTokenProvider implements Interceptor {
@@ -24,11 +24,11 @@ public class OscGitTokenInterceptor extends AuthTokenProvider implements Interce
     }
 
     @Override
-    public Response intercept(Chain chain) throws IOException {
+    public Response intercept(Interceptor.Chain chain) throws IOException {
         Request request = chain.request();
         String token = getAuthToken();
         if (token != null) {
-            HttpUrl url = request.httpUrl().newBuilder()
+            HttpUrl url = request.url().newBuilder()
                     .addQueryParameter(OscGitConstants.QUERY_PARAM_TOKEN, token)
                     .build();
             request = request.newBuilder().url(url).build();

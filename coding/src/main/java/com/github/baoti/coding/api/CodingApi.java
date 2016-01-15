@@ -3,23 +3,22 @@ package com.github.baoti.coding.api;
 import com.github.baoti.coding.CodingProject;
 import com.github.baoti.coding.CodingUser;
 
-import retrofit.Response;
-import retrofit.http.Field;
-import retrofit.http.FormUrlEncoded;
-import retrofit.http.GET;
-import retrofit.http.POST;
-import retrofit.http.Query;
+import retrofit2.Response;
+import retrofit2.http.Field;
+import retrofit2.http.FormUrlEncoded;
+import retrofit2.http.GET;
+import retrofit2.http.POST;
+import retrofit2.http.Query;
 import rx.Observable;
 
 /**
  * Created by liuyedong on 15-3-19.
  */
 public interface CodingApi {
-    String API_URL = "https://coding.net/api";
+    String API_URL = "https://coding.net/api/";
 
-    // CodingResponse<CodingUser>
     @FormUrlEncoded
-    @POST("/login")
+    @POST("login")
     Observable<Response<CodingResponse<CodingUser>>> login(
             @Field("email") String emailOrUserKey,
             @Field("password") String password,
@@ -29,7 +28,7 @@ public interface CodingApi {
     /**
      * 分页获取公开项目列表
      */
-    @GET("/public/all")
+    @GET("public/all")
     Observable<CodingResponse<Page<CodingProject>>> listProjects(
             @Query("page") int page,
             @Query("pageSize") int pageSize

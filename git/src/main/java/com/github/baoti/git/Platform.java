@@ -13,6 +13,7 @@ import javax.inject.Singleton;
 
 import dagger.ObjectGraph;
 import dagger.Provides;
+import okhttp3.OkHttpClient;
 import timber.log.Timber;
 
 @dagger.Module(library = true)
@@ -72,6 +73,12 @@ public class Platform {
     @Provides
     Application providesApplication() {
         return application;
+    }
+
+    @Singleton
+    @Provides
+    OkHttpClient providesOkHttpClient() {
+        return new OkHttpClient();
     }
 
     @Singleton

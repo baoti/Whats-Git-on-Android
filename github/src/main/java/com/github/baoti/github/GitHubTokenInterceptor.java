@@ -5,14 +5,14 @@ import android.app.Activity;
 import com.github.baoti.git.accounts.AccountUtils;
 import com.github.baoti.git.accounts.AuthTokenProvider;
 import com.github.baoti.git.util.RxUtils;
-import com.squareup.okhttp.Interceptor;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.Response;
 
 import java.io.IOException;
 
 import javax.inject.Inject;
 
+import okhttp3.Interceptor;
+import okhttp3.Request;
+import okhttp3.Response;
 import rx.Observable;
 
 import static com.github.baoti.git.util.Texts.basicAuthorization;

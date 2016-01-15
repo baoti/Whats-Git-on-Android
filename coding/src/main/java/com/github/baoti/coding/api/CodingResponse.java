@@ -12,7 +12,7 @@ public class CodingResponse<D> {
     public D data;
     public Map<String, String> msg;
 
-    public static boolean isSuccessful(retrofit.Response<CodingResponse<CodingUser>> response) {
+    public static boolean isSuccessful(retrofit2.Response<CodingResponse<CodingUser>> response) {
         return response.isSuccess() && response.body().code == 0;
     }
 }

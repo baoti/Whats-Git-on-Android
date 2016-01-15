@@ -15,6 +15,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.github.baoti.git.Platform;
 import com.github.baoti.git.accounts.AccountAuthenticatorActivity;
 import com.github.baoti.git.accounts.AccountUtils;
 import com.github.baoti.git.util.Contracts;
@@ -22,15 +23,19 @@ import com.github.baoti.github.GitHubConstants;
 import com.github.baoti.github.R;
 import com.github.baoti.github.api.GitHubApi;
 import com.github.baoti.github.api.TokenResponse;
-import com.squareup.okhttp.OkHttpClient;
 
-import retrofit.GsonConverterFactory;
-import retrofit.ObservableCallAdapterFactory;
-import retrofit.Retrofit;
+import javax.inject.Inject;
+
+import okhttp3.OkHttpClient;
+import retrofit2.GsonConverterFactory;
+import retrofit2.Retrofit;
+import retrofit2.RxJavaCallAdapterFactory;
 import rx.Observer;
 import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.functions.Func1;
+import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
 import static android.accounts.AccountManager.KEY_ACCOUNT_NAME;
@@ -38,12 +43,14 @@ import static android.accounts.AccountManager.KEY_ACCOUNT_TYPE;
 import static android.accounts.AccountManager.KEY_AUTHTOKEN;
 import static butterknife.ButterKnife.findById;
 import static com.github.baoti.github.api.TokenRequest.authorize;
-import static rx.android.app.AppObservable.bindFragment;
 
 /**
  * Created by liuyedong on 15-3-19.
  */
 public class LoginFragment extends Fragment {
+
+    @Inject
+    OkHttpClient httpClient;
 
     EditText email;
 
@@ -61,15 +68,17 @@ public class LoginFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Platform.inject(this);
         accountType = getString(GitHubConstants.ACCOUNT_TYPE_RES);
         passwordInterceptor = new PasswordInterceptor();
-        OkHttpClient client = new OkHttpClient();
-        client.interceptors().add(passwordInterceptor);
+        OkHttpClient client = httpClient.newBuilder()
+                .addInterceptor(passwordInterceptor)
+                .build();
         api = new Retrofit.Builder()
                 .baseUrl(GitHubApi.API_URL)
                 .client(client)
-                .callAdapterFactory(ObservableCallAdapterFactory.create())
-                .converterFactory(GsonConverterFactory.create())
+                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+                .addConverterFactory(GsonConverterFactory.create())
                 .build()
                 .create(GitHubApi.class);
         accountUtils = new AccountUtils(AccountManager.get(getActivity()));
@@ -117,7 +126,11 @@ public class LoginFragment extends Fragment {
         final String passwordText = password.getText().toString();
 
         passwordInterceptor.setPassword(emailText, passwordText);
-        loginSubscription = bindFragment(this, authorize(api)
+        if (loginSubscription != null) {
+            loginSubscription.unsubscribe();
+        }
+        loginSubscription = authorize(api)
+                .subscribeOn(Schedulers.io())
                 .map(new Func1<TokenResponse, String>() {
                     @Override
                     public String call(TokenResponse tokenResponse) {
@@ -132,7 +145,8 @@ public class LoginFragment extends Fragment {
                         accountUtils.saveAuthToken(account,
                                 GitHubConstants.AUTH_TOKEN_TYPE, s);
                     }
-                }))
+                })
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Observer<String>() {
                     @Override
                     public void onCompleted() {

@@ -21,18 +21,24 @@ import com.github.baoti.coding.CodingUser;
 import com.github.baoti.coding.R;
 import com.github.baoti.coding.api.CodingApi;
 import com.github.baoti.coding.api.CodingResponse;
+import com.github.baoti.git.Platform;
 import com.github.baoti.git.accounts.AccountAuthenticatorActivity;
 import com.github.baoti.git.accounts.AccountUtils;
 
-import retrofit.GsonConverterFactory;
-import retrofit.ObservableCallAdapterFactory;
-import retrofit.Response;
-import retrofit.Retrofit;
+import javax.inject.Inject;
+
+import okhttp3.OkHttpClient;
+import retrofit2.GsonConverterFactory;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.RxJavaCallAdapterFactory;
 import rx.Observer;
 import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.exceptions.OnErrorThrowable;
 import rx.functions.Action1;
 import rx.functions.Func1;
+import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
 import static android.accounts.AccountManager.KEY_ACCOUNT_NAME;
@@ -40,12 +46,14 @@ import static android.accounts.AccountManager.KEY_ACCOUNT_TYPE;
 import static android.accounts.AccountManager.KEY_AUTHTOKEN;
 import static butterknife.ButterKnife.findById;
 import static com.github.baoti.coding.CodingUtils.passwordSha1;
-import static rx.android.app.AppObservable.bindFragment;
 
 /**
  * Created by liuyedong on 15-3-19.
  */
 public class LoginFragment extends Fragment {
+
+    @Inject
+    OkHttpClient httpClient;
 
     EditText email;
 
@@ -64,11 +72,13 @@ public class LoginFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Platform.inject(this);
         accountType = getString(CodingConstants.ACCOUNT_TYPE_RES);
         api = new Retrofit.Builder()
                 .baseUrl(CodingApi.API_URL)
-                .callAdapterFactory(ObservableCallAdapterFactory.create())
-                .converterFactory(GsonConverterFactory.create())
+                .client(httpClient)
+                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+                .addConverterFactory(GsonConverterFactory.create())
                 .build()
                 .create(CodingApi.class);
         accountUtils = new AccountUtils(AccountManager.get(getActivity()));
@@ -117,7 +127,11 @@ public class LoginFragment extends Fragment {
         final String passwordText = password.getText().toString();
         String captchaText = TextUtils.isEmpty(captcha.getText()) ? null : captcha.getText().toString();
 
-        loginSubscription = bindFragment(this, api.login(emailText, passwordSha1(passwordText), captchaText)
+        if (loginSubscription != null) {
+            loginSubscription.unsubscribe();
+        }
+        loginSubscription = api.login(emailText, passwordSha1(passwordText), captchaText)
+                .subscribeOn(Schedulers.io())
                 .map(new Func1<Response<CodingResponse<CodingUser>>, String>() {
                     @Override
                     public String call(Response<CodingResponse<CodingUser>> response) {
@@ -136,7 +150,8 @@ public class LoginFragment extends Fragment {
                         accountUtils.saveAuthToken(account,
                                 CodingConstants.AUTH_TOKEN_TYPE, s);
                     }
-                }))
+                })
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Observer<String>() {
                     @Override
                     public void onCompleted() {
