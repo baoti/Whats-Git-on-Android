@@ -14,7 +14,7 @@ android {
 dependencies {
     compile project(":git")
 
-    compile 'com.google.code.gson:gson:2.5'
+    compile 'com.google.code.gson:gson:2.6.1'
 
     compile retrofit2Lib
     compile retrofit2RxjavaAdapterLib

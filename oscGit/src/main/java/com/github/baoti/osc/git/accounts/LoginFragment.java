@@ -27,9 +27,9 @@ import com.github.baoti.osc.git.api.OscGitSession;
 import javax.inject.Inject;
 
 import okhttp3.OkHttpClient;
-import retrofit2.GsonConverterFactory;
 import retrofit2.Retrofit;
-import retrofit2.RxJavaCallAdapterFactory;
+import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
+import retrofit2.converter.gson.GsonConverterFactory;
 import rx.Observer;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
