@@ -16,7 +16,7 @@ dependencies {
     compile "com.android.support:support-v4:$androidSupportLibVersion"
     compile "com.android.support:appcompat-v7:$androidSupportLibVersion"
 
-    compile 'com.squareup.okhttp3:okhttp:3.1.2'
+    compile 'com.squareup.okhttp3:okhttp:3.2.0'
     compile 'com.squareup.picasso:picasso:2.5.2'
     compile 'com.jakewharton.timber:timber:3.0.2'
 

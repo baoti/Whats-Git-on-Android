@@ -26,8 +26,8 @@ allprojects {
         daggerLib = 'com.squareup.dagger:dagger:1.2.2'
         daggerCompilerLib = 'com.squareup.dagger:dagger-compiler:1.2.2'
 
-        retrofit2Lib = 'com.squareup.retrofit2:retrofit:2.0.0-beta4'
-        retrofit2RxjavaAdapterLib = 'com.squareup.retrofit2:adapter-rxjava:2.0.0-beta4'
-        retrofit2GsonConverterLib = 'com.squareup.retrofit2:converter-gson:2.0.0-beta4'
+        retrofit2Lib = 'com.squareup.retrofit2:retrofit:2.0.0'
+        retrofit2RxjavaAdapterLib = 'com.squareup.retrofit2:adapter-rxjava:2.0.0'
+        retrofit2GsonConverterLib = 'com.squareup.retrofit2:converter-gson:2.0.0'
     }
 }

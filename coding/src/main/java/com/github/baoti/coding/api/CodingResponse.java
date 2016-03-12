@@ -13,6 +13,6 @@ public class CodingResponse<D> {
     public Map<String, String> msg;
 
     public static boolean isSuccessful(retrofit2.Response<CodingResponse<CodingUser>> response) {
-        return response.isSuccess() && response.body().code == 0;
+        return response.isSuccessful() && response.body().code == 0;
     }
 }
