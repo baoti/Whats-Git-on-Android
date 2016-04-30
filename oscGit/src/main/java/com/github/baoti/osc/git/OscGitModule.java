@@ -8,21 +8,23 @@ import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
+import dagger.multibindings.IntoSet;
 
 /**
  * Created by liuyedong on 15-3-19.
  */
 @Module
-public class OscGitModule {
+public abstract class OscGitModule {
 
     @Singleton
     @Provides
-    @AccountType String accountType(Application app) {
+    @AccountType static String accountType(Application app) {
         return app.getString(OscGitConstants.ACCOUNT_TYPE_RES);
     }
 
-    @Provides(type = Provides.Type.SET)
-    GitSource gitSource(OscGitSource source) {
+    @Provides
+    @IntoSet
+    static GitSource gitSource(OscGitSource source) {
         return source;
     }
 }

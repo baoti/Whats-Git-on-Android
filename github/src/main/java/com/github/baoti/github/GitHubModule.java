@@ -8,21 +8,23 @@ import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
+import dagger.multibindings.IntoSet;
 
 /**
  * Created by liuyedong on 15-3-19.
  */
 @Module
-public class GitHubModule {
+public abstract class GitHubModule {
 
     @Singleton
     @Provides
-    @AccountType String accountType(Application app) {
+    @AccountType static String accountType(Application app) {
         return app.getString(GitHubConstants.ACCOUNT_TYPE_RES);
     }
 
-    @Provides(type = Provides.Type.SET)
-    GitSource gitSource(GitHubSource source) {
+    @Provides
+    @IntoSet
+    static GitSource gitSource(GitHubSource source) {
         return source;
     }
 }

@@ -10,6 +10,7 @@ import java.util.Set;
 import javax.inject.Singleton;
 
 import dagger.Provides;
+import dagger.multibindings.ElementsIntoSet;
 import timber.log.Timber;
 
 public class Platform {
@@ -73,7 +74,8 @@ public class Platform {
             return AccountManager.get(application);
         }
 
-        @Provides(type = Provides.Type.SET_VALUES)
+        @Provides
+        @ElementsIntoSet
         Set<GitSource> providesGitSourceSet() {
             return new HashSet<>();
         }
